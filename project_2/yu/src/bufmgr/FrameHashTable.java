@@ -37,6 +37,7 @@ class bucket {
 		buc.add(newpair);
 	}
 	public FPpair getpair(int pid){
+		System.out.println(pid);
 		Iterator<FPpair> i=buc.iterator();
 		while(i.hasNext()){
 			if(i.next().getPage()==pid){
@@ -49,15 +50,21 @@ class bucket {
 }
 
 public class FrameHashTable {
-    private int HTSIZE = 29;
+    private int HTSIZE = 19;
     private bucket[] dir;
     PageId pid = null;
     public FrameHashTable(){
     	dir = new bucket[HTSIZE];
+    	for(int i=0;i<HTSIZE;i=i+1){
+    		dir[i] = new bucket();
+    	}
     }
     public FrameHashTable(int tbsize){
     	HTSIZE = tbsize;
     	dir = new bucket[HTSIZE];
+    	for(int i=0;i<HTSIZE;i=i+1){
+    		dir[i] = new bucket();
+    	}
     }
     public void AddToDir(PageId pageid,int fid) throws ChainException{
     	int bucketid = HashFunction(pageid.pid);
@@ -75,6 +82,6 @@ public class FrameHashTable {
     }
     
     public int HashFunction(int value){
-    	return (3*value+2)%HTSIZE;
+    	return (5*value+10)%HTSIZE;
     }
 }

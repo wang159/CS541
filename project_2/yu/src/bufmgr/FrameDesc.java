@@ -1,16 +1,12 @@
 package bufmgr;
-
-
 import global.PageId;
-
-
 public class FrameDesc {
     private PageId page_number;
     private int pin_count;
     private boolean dirtybit;
     public FrameDesc(){}
     
-    public FrameDesc(PageId pid, int pcount, boolean dbit){
+    public FrameDesc(PageId pid,int pcount, boolean dbit){
     	page_number = pid;
     	pin_count = pcount;
     	dirtybit = dbit;
@@ -22,6 +18,10 @@ public class FrameDesc {
     
     public int getPinCount(){
     	return pin_count;
+    }
+    
+    public void setPageId(PageId pageid){
+    	page_number = pageid;
     }
     
     public void setPinCount(int pcount){

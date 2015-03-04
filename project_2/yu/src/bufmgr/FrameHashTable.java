@@ -1,7 +1,7 @@
 package bufmgr;
 
 
-import java.util.Iterator;
+
 import java.util.Vector;
 
 import global.PageId;
@@ -17,33 +17,34 @@ class bucket {
 	public bucket(int dirsize){
 		buc = new Vector<FPpair>(dirsize); 
 	}
-	public void Add(FPpair newpair) throws ChainException{
-		for(Iterator<FPpair> i=buc.iterator();i.hasNext();){
-			if(i.next().getPage()==newpair.getPage()){
-				throw new DuplicateEntryException(null,"Page exists in the buffer.");
+	public void Add(FPpair newpair){
+		int addflag=0;
+		for(FPpair obj:buc){
+			if(obj.getPage()==newpair.getPage()){
+				addflag=1;//throw new DuplicateEntryException(null,"Page exists in the buffer.");
 			}
 		}
-		buc.add(newpair);
+		if(addflag==0){
+			buc.add(newpair);
+		}
 	}
-	public void Delete(FPpair newpair) throws ChainException{
-		for(Iterator<FPpair> i=buc.iterator();i.hasNext();){
-			if(i.next().getPage()==newpair.getPage()){
-				buc.remove(i.next());
+	public void Delete(FPpair newpair){
+		for(FPpair obj:buc){
+			if(obj.getPage()==newpair.getPage()){
+				buc.remove((FPpair)obj);
 			}
-			else{
-				throw new DuplicateEntryException(null,"Page does not in the buffer.");
-			}
+			
 		}
-		buc.add(newpair);
+		
 	}
 	public FPpair getpair(int pid){
-		System.out.println(pid);
-		Iterator<FPpair> i=buc.iterator();
-		while(i.hasNext()){
-			if(i.next().getPage()==pid){
-				i.next();
-			}
-		}
+		//Iterator<FPpair> i=buc.iterator();
+		//System.out.println(pid);
+		for (FPpair obj : buc) {
+        		if (obj.getPage()==pid) {
+            			return obj;
+      		        }
+  		}
 		return null;
 	}
 
@@ -66,20 +67,24 @@ public class FrameHashTable {
     		dir[i] = new bucket();
     	}
     }
-    public void AddToDir(PageId pageid,int fid) throws ChainException{
+    public void AddToDir(PageId pageid,int fid){
     	int bucketid = HashFunction(pageid.pid);
     	FPpair newpair = new FPpair(pageid.pid,fid);
     	dir[bucketid].Add(newpair);
     }
-    public void DeleteFromDir(PageId pageid,int fid) throws ChainException{
-    	int bucketid = HashFunction(pageid.pid);
-    	FPpair newpair = new FPpair(pageid.pid,fid);
-    	dir[bucketid].Delete(newpair);
+    public void DeleteFromDir(PageId pageid,int fid) {
+    	if(pageid!=null){
+    		int bucketid = HashFunction(pageid.pid);
+    		FPpair newpair = new FPpair(pageid.pid,fid);
+    		dir[bucketid].Delete(newpair);
+    	}
     }
     public FPpair getPair(PageId pageid){
     	int bucketid = HashFunction(pageid.pid);
+	//System.out.println(bucketid);
     	return dir[bucketid].getpair(pageid.pid);
     }
+ 
     
     public int HashFunction(int value){
     	return (5*value+10)%HTSIZE;

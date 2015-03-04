@@ -7,6 +7,7 @@ import java.io.*;
 
 //import global.Convert;
 import global.GlobalConst;
+import global.Minibase;
 //import global.Minibase;
 import global.Page;
 import global.PageId;
@@ -14,7 +15,6 @@ import chainexception.ChainException;
 
 public class BufMgr{ 
 	//
-	private final int HTSIZE = 29;
 	private int numFrame = 0;
 	private String ReplPolicy = "LIRS";
 	private LIRS rep;
@@ -22,23 +22,26 @@ public class BufMgr{
 	private FrameDesc[] frDescriptor;
 	private FrameHashTable frHashTab;
 	private Vector<Integer> unpinlist;
-	public DiskMgr diskmanager;
+	//public DiskMgr diskmanager;
 /** 
 * Create the BufMgr object. 
 * Allocate pages (frames) for the buffer pool in main memory and 
 * make the buffer manage aware that the replacement policy is 
 * specified by replacerArg (e.g., LH, Clock, LRU, MRU, LIRS, etc.).  
 * 
-* ​ @param​  numbufs number of buffers in the buffer pool 
-* ​ @param​  lookAheadSize number of pages to be looked ahead: not used
-* ​ @param​  replacementPolicy Name of the replacement policy 
+* @param numbufs number of buffers in the buffer pool 
+* @param lookAheadSize number of pages to be looked ahead: not used
+* @param replacementPolicy Name of the replacement policy 
 */  
 public BufMgr(int numfrms, int lookAheadSize, String replacementPolicy) {
 	numFrame = numfrms;
 	ReplPolicy=replacementPolicy;
 	BufPool = new byte[numFrame][GlobalConst.PAGE_SIZE];
 	frDescriptor = new FrameDesc[numFrame];
-	frHashTab = new FrameHashTable(HTSIZE);
+	for(int i = 0;i<numFrame;i=i+1){
+		frDescriptor[i] = new FrameDesc(null,0,false);
+	}
+	frHashTab = new FrameHashTable(19);
 	unpinlist = new Vector<Integer>();
 	if(ReplPolicy!="LIRS"){
 		throw new UnsupportedOperationException("This replacement policy is not supported.\nSupported list:\nLIRS\n");
@@ -67,47 +70,55 @@ public BufMgr(int numfrms, int lookAheadSize, String replacementPolicy) {
 * @param emptyPage true (empty page); false (non­empty page) 
 */  
 public void pinPage(PageId pageno, Page page, boolean emptyPage) throws ChainException {
+	//System.out.println(pageno.pid);
 	FPpair fp=frHashTab.getPair(pageno);
 	if(fp!=null){
 		int frmid=fp.getFrame();
 		if(frDescriptor[frmid].getPinCount()>0){
 			frDescriptor[frmid].IncrePinCount();
+			rep.increGlobalOpId();
+			rep.setFrameOpId(frmid);
+			frHashTab.AddToDir(pageno, frmid);
+			page.setpage(BufPool[frmid]);
 		}	
 	}
 	else{
-		if(isBuffFull()){
-			throw new BufferPoolExceededException(null,"Buffer pool is full. Cannot pin this page.");
-		}
-		else{
 			//use LIRS to get the frameId
 			rep.increGlobalOpId();
 			int count=0,numunpinned = getNumUnpinned(),foundFid;
-			int[] LIRSresult = new int[numunpinned];
-			for(Iterator<Integer> i=unpinlist.iterator();i.hasNext();){
-				LIRSresult[count] = rep.result(i.next());
+			int[] LIRSresult = new int[numunpinned];	
+			for(int i:unpinlist){
+				LIRSresult[count] = rep.result(i);
 				count = count+1;
 			}
 			//sort LIRSresult and select the 1st one
 			foundFid = hasMaxLIRS(LIRSresult,numunpinned);
+			// add the new page to the directory
+			frHashTab.AddToDir(pageno, foundFid);
+			// update in replacement policy
+			rep.setFrameOpId(foundFid);
 			
+			//System.out.println(foundFid);
 			//if this frame is dirty, flush it
 			if(frDescriptor[foundFid].isDirty()==true){
 				flushPage(frDescriptor[foundFid].getPageId());
 				// remove the entry from the directory
-				frHashTab.DeleteFromDir(pageno, foundFid);
+				frHashTab.DeleteFromDir(frDescriptor[foundFid].getPageId(), foundFid);
 			}
-			// add the new page to the directory
-			frHashTab.AddToDir(pageno, foundFid);
+			
 			//read new page 
 			try{
-				diskmanager.read_page(pageno, page);
+				Minibase.DiskManager.read_page(pageno, page);
 			}catch(Exception e){
-                throw new ChainException(e, "Unable to read page.");
+               throw new ChainException(e, "Unable to read page.");
 			}
+			BufPool[foundFid]=page.getpage();
 			//update in frDescriptor
-			frDescriptor[foundFid]=new FrameDesc(pageno,foundFid,false);
+			frDescriptor[foundFid].setPageId(pageno);
 			frDescriptor[foundFid].setPinCount(1);
-		}
+			frDescriptor[foundFid].SetDirtyBit(false);
+			unpinlist.remove((Integer)foundFid);
+			
 	}
 	
 	
@@ -134,19 +145,29 @@ public void unpinPage(PageId pageno, boolean dirty) throws ChainException{
 	if(pageno == null){
 		throw new ChainException(null,"Invalid page ID.");
 	}
+//	System.out.println(pageno.pid);
 	FPpair fp=frHashTab.getPair(pageno);
 	if(fp == null){
 		throw new HashEntryNotFoundException(null, "This page does not exist in the buffer.");
 	}
 	else{
-		if(dirty == true){
-			frDescriptor[fp.getFrame()].SetDirtyBit(true);
+		if(dirty == true){			
 			if(frDescriptor[fp.getFrame()].getPinCount()==0){
 				throw new PageUnpinnedException(null,"The page already is unppinedd.");
 			}
-			else{
-				frDescriptor[fp.getFrame()].DecrePinCount();
-			}
+			frDescriptor[fp.getFrame()].DecrePinCount();
+			frDescriptor[fp.getFrame()].SetDirtyBit(dirty);
+				if(frDescriptor[fp.getFrame()].getPinCount()==0){
+					int addflag=0;
+					for(Integer i:unpinlist){
+						if(i == fp.getFrame()){
+							addflag=1;
+						}
+					}
+					if(addflag==0){
+						unpinlist.add(fp.getFrame());
+					}
+				}
 		}
 	}
 	
@@ -175,9 +196,9 @@ public PageId newPage(Page firstpage, int howmany) throws IOException,ChainExcep
 		throw new InvalidPageNumberException(null,"Number of pages to be allocated should be larger than 0.");
 	}
 	PageId firstPid = new PageId();
-	if(!isBuffFull()){
+	if(!isBuffFull()){		
 		try{
-			diskmanager.allocate_page(firstPid, howmany);
+			Minibase.DiskManager.allocate_page(firstPid,howmany);
 		}
 		catch(Exception e){
 			throw new ChainException(e, "Cannot allocate " + howmany + " pages.");
@@ -187,7 +208,7 @@ public PageId newPage(Page firstpage, int howmany) throws IOException,ChainExcep
 	}
 	else {
 		try{
-			diskmanager.deallocate_page(firstPid, howmany);
+			Minibase.DiskManager.deallocate_page(firstPid, howmany);
 		}
 		catch(Exception e){
 			throw new ChainException(e, "Cannot deallocate these pages."); 
@@ -209,15 +230,19 @@ public void freePage(PageId globalPageId) throws ChainException{
 	}
 	FPpair fp=frHashTab.getPair(globalPageId);
 	if(fp == null){
+		Minibase.DiskManager.deallocate_page(globalPageId);
 		throw new HashEntryNotFoundException(null, "This page does not exist in the buffer.");
 	}
 	else{
-		if(frDescriptor[fp.getFrame()].getPinCount()==0){
+		if(frDescriptor[fp.getFrame()].getPinCount()>0){
 			throw new PagePinnedException(null, "This page is pinned in the buffer.");
 		}
 		else{
 			try{
-                diskmanager.deallocate_page(globalPageId);
+				frDescriptor[fp.getFrame()].setPageId(null);
+				frDescriptor[fp.getFrame()].SetDirtyBit(false);
+				frDescriptor[fp.getFrame()].setPinCount(0);
+				Minibase.DiskManager.deallocate_page(globalPageId);
 			}catch(Exception e){
                 throw new ChainException(e, "Unable to deallocate this page on disk.");
 			}
@@ -240,14 +265,17 @@ public void flushPage(PageId pageid) throws ChainException{
 		throw new HashEntryNotFoundException(null, "This page does not exist in the buffer.");
 	}
 	else{
-		Page pageToWrite = new Page();
-        pageToWrite.setpage(BufPool[fp.getFrame()]);       
-        // Write frame to disk.
-        try{
-                diskmanager.write_page(pageid, pageToWrite);
-        }catch(Exception e){
+			Page pageToWrite = new Page();
+        	pageToWrite.setpage(BufPool[fp.getFrame()]);       
+        	// Write frame to disk.
+        	try{
+        		Minibase.DiskManager.write_page(pageid, pageToWrite);
+        	}catch(Exception e){
                 throw new ChainException(e, "Unable to write to disk.");
-        }
+        	}
+		frDescriptor[fp.getFrame()].setPageId(null);
+		frDescriptor[fp.getFrame()].SetDirtyBit(false);
+		frDescriptor[fp.getFrame()].setPinCount(0);
 	}
 } 
    
@@ -278,7 +306,7 @@ public int getNumUnpinned() {
 	int count = 0;
 	for(int i = 0; i<frDescriptor.length;i=i+1){
 		if(frDescriptor[i].getPinCount()==0){
-			unpinlist.add(i);
+			//unpinlist.add(i);
 			count = count + 1;
 		}
 	}

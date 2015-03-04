@@ -37,7 +37,7 @@ public class DiskMgr implements GlobalConst {
     
     name = fname;
     
-    // Creaat a random access file
+    // Creat a random access file
     fp = new RandomAccessFile(fname, "rw");
     
     PageId pageId = new PageId();
@@ -872,11 +872,13 @@ public class DiskMgr implements GlobalConst {
    */
   private void pinPage(PageId pageno, Page page, boolean emptyPage)
     throws DiskMgrException {
-
+	//System.out.println(pageno.pid);
     try {
+    	
       Minibase.BufferManager.pinPage(pageno, page, emptyPage);
     }
     catch (Exception e) {
+    	//System.out.println(pageno.pid);
       throw new DiskMgrException(e,"DB.java: pinPage() failed");
     }
 

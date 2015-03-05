@@ -12,11 +12,27 @@ import java.io.IOException;
 import chainexception.ChainException;
 
 public class HeapFile {
-    void deleteRecord(RID rid) {
+    public HeapFile () {
+
+    }
+
+    public HeapFile (Page page) {
+
+    }
+
+    public HeapFile (String name) {
+
+    }
+
+    public void deleteRecord(RID rid) {
         // Deletes a record from the page, compacting the records space.
     }
     
-    RID firstRecord() {
+    public Tuple getRecord(RID rid) {
+
+    }
+
+    public RID firstRecord() {
         // Gets the RID of the first record on the page, or null if none.
     }
     
@@ -56,7 +72,7 @@ public class HeapFile {
         // Returns true if the iteration has more elements.
     }
     
-    RID insertRecord(byte[] record) {
+    public RID insertRecord(byte[] record) {
         // Inserts a new record into the page.
     }
     
@@ -88,7 +104,15 @@ public class HeapFile {
         // Sets the arbitrary type of the page.
     }
     
-    void updateRecord(RID rid, heap.Tuple record) {
+    public void updateRecord(RID rid, heap.Tuple record) {
         // Updates a record on the page.
+    }
+
+    public int getRecCnt() {
+        // Get number of records in the file
+    }
+
+    public HeapScan openScan() {
+
     }
 }

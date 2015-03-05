@@ -12,7 +12,8 @@ import java.io.IOException;
 import chainexception.ChainException;
 
 public class HeapScan {
-    protected void finalize() throws Throwable {
+    protected void finalize() 
+        throws Throwable {
         //
 
     }
@@ -27,7 +28,7 @@ public class HeapScan {
 
     }
 
-    public Tuple getNext() {
+    public Tuple getNext(RID rid) {
         //
     }
 }

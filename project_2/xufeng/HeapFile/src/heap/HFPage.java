@@ -7,7 +7,10 @@ import global.RID;
 import global.PageId;
 import global.Page;
 
-import java.io.IOException;
+import java.util.Arrays;
+import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
 
 import chainexception.ChainException;
 
@@ -15,21 +18,108 @@ import chainexception.ChainException;
 public class HFPage extends Page {
     public static final int SHORT_FIELD_SIZE = 2;
     public static final int INT_FIELD_SIZE   = 4;
+    public static final int SLOT_SIZE = SHORT_FIELD_SIZE*2; // slot index size (offset, length)
 
     public static final int THISID_OFFSET    = 0;                                   // this page ID
-    public static final int PREVID_OFFSET    = INT_FIELD_SIZE;                      // previous page ID
-    public static final int NEXTID_OFFSET    = INT_FIELD_SIZE*2;                    // next page ID
-    public static final int SLOTCNT_OFFSET   = INT_FIELD_SIZE*2+SHORT_FIELD_SIZE;   // slot_count
-    public static final int TYPE_OFFSET      = INT_FIELD_SIZE*2+SHORT_FIELD_SIZE*2; // type
-    public static final int FREESPACE_OFFSET = INT_FIELD_SIZE*2+SHORT_FIELD_SIZE*3; // free_space
-    public static final int TOTAL_OFFSET     = FREESPACE_OFFSET+SHORT_FIELD_SIZE;   // free_space
+    public static final int PREVID_OFFSET    = THISID_OFFSET    + INT_FIELD_SIZE;   // previous page ID
+    public static final int NEXTID_OFFSET    = PREVID_OFFSET    + INT_FIELD_SIZE;   // next page ID
+    public static final int SLOTCNT_OFFSET   = NEXTID_OFFSET    + INT_FIELD_SIZE;   // slot_count
+    public static final int TYPE_OFFSET      = SLOTCNT_OFFSET   + SHORT_FIELD_SIZE; // type
+    public static final int FREESPACE_OFFSET = TYPE_OFFSET      + SHORT_FIELD_SIZE; // freespace
+    public static final int TOTAL_OFFSET     = FREESPACE_OFFSET + SHORT_FIELD_SIZE; // slot begin
     
     public HFPage () {
-  
+        // initialization
+        byte[] zeroBytes = getData();
+        Arrays.fill( zeroBytes, (byte) 0 );
+        setData(zeroBytes);
+
+        // set freeSpace (short) slot
+        setShortValue((short)(PAGE_SIZE-TOTAL_OFFSET),FREESPACE_OFFSET);
     }
 
     public HFPage (Page page) {
 
+    }
+
+    
+    ////////////////////////////
+    // Slot operations
+    ////////////////////////////
+
+    short getSlotLength(int slotno) {
+        // Gets the length of the record referenced by the given slot.
+        short thisRecordLength;
+
+        if (slotno == -1) {
+            // no slot exists
+            thisRecordLength = 0;
+        } else {
+            // there are existing slots
+            short thisSlotPOS = (short)(TOTAL_OFFSET + slotno*SLOT_SIZE); // this slot head position
+            thisRecordLength = getShortValue(thisSlotPOS + SHORT_FIELD_SIZE);
+        }
+        
+        return thisRecordLength;
+    }
+    
+    short getSlotOffset(int slotno) {
+        // Gets the offset of the record referenced by the given slot.
+        short thisRecordOffset;
+
+        if (slotno == -1) {
+            // no slot exists
+            thisRecordOffset = PAGE_SIZE;
+        } else {
+            // there are existing slots
+            short thisSlotPOS = (short)(TOTAL_OFFSET + slotno*SLOT_SIZE); // this slot head position
+            thisRecordOffset = getShortValue(thisSlotPOS);
+        }
+        
+        return thisRecordOffset;
+    }
+
+    ////////////////////////////
+    // Record operations
+    ////////////////////////////
+
+    RID insertRecord(byte[] record) {
+        // Inserts a new record into the page.
+
+        // locate the starting point of this new record
+        short newSlotPOS = (short)(TOTAL_OFFSET + getSlotCount()*SLOT_SIZE); // new slot head position
+        short newRecordPOS = (short)(getSlotOffset(getSlotCount()-1)-record.length); // new record head position
+        RID newRID = new RID(getCurPage(), (int)getSlotCount()+1); // new record ID
+
+        // add new record slot
+        setShortValue(newRecordPOS, newSlotPOS);
+        setShortValue((short)record.length, newSlotPOS + SHORT_FIELD_SIZE);
+
+        setSlotCount((short)(getSlotCount()+1)); // increate the slot count by 1
+
+        // add new record data
+        System.out.println(">> insertRecord: adding " + record.length + " bytes data to pos = " + newRecordPOS+" with "+getFreeSpace()+" bytes left.\n");
+        for (int index = newRecordPOS; index < (newRecordPOS + record.length); index++) {
+            getData()[index] = record[index-newRecordPOS];
+        }
+
+        // update freespace value
+        setFreeSpace((short)(getFreeSpace()-SLOT_SIZE-record.length));
+
+        return newRID;
+    }
+  
+    byte[] selectRecord(RID rid) {
+        // Selects a record from the page.
+        short recordLength = getSlotLength(rid.slotno);
+        short recordOffset = getSlotOffset(rid.slotno);
+        System.out.println(">> selectRecord: page_size = " + PAGE_SIZE +"; recordLength = " + recordLength + "; recordOffset = " + recordOffset + "\n");
+
+        return Arrays.copyOfRange(getData(),recordOffset,recordOffset+recordLength);
+    }
+    
+    public void updateRecord(RID rid, heap.Tuple record) {
+        // Updates a record on the page.
     }
 
     public void deleteRecord(RID rid) {
@@ -41,69 +131,19 @@ public class HFPage extends Page {
         return null;
     }
     
-    PageId getCurPage() {
-        // Gets the current page's id.
-        return null;
-    }
-    
-    short getFreeSpace() {
-        // Gets the amount of free space (in bytes).
-        return 1;
-    }
-    
-    PageId getNextPage() {
-        // Gets the next page's id.
-        return null;
-    }
-    
-    PageId getPrevPage() {
-        // Gets the previous page's id.
-        return null;
-    }
-    
-    short getSlotCount() {
-        // Gets the number of slots on the page.
-        return 1;
-    }
-    
-    short getSlotLength(int slotno) {
-        // Gets the length of the record referenced by the given slot.
-        return 1;
-    }
-    
-    short getSlotOffset(int slotno) {
-        // Gets the offset of the record referenced by the given slot.
-                return 1;
-    }
-    
-    short getType() {
-        // Gets the arbitrary type of the page.
-                return 1;
-    }
-    
-    boolean hasNext(RID curRid) {
-        // Returns true if the iteration has more elements.
-                return true;
-    }
-    
-    RID insertRecord(byte[] record) {
-        // Inserts a new record into the page.
-                return null;
-    }
-    
     RID nextRecord(RID curRid) {
         // Gets the next RID after the given one, or null if no more.
                 return null;
     }
-    
-    void print() {
-        // Prints the contents of a heap file page.
+
+    boolean hasNext(RID curRid) {
+        // Returns true if the iteration has more elements.
+                return true;
     }
-    
-    byte[] selectRecord(RID rid) {
-        // Selects a record from the page.
-                return null;
-    }
+
+    ////////////////////////////
+    // SET information blocks
+    ////////////////////////////
     
     void setCurPage(PageId pageno) {
         // Sets the current page's id.
@@ -125,18 +165,103 @@ public class HFPage extends Page {
         // 0 = directory page; 1 = record page
         setShortValue(type,TYPE_OFFSET);
     }
-    
+
     void setSlotCount(short slotCnt) {
         // Sets the total slot count of the page.
         setShortValue(slotCnt,SLOTCNT_OFFSET);
     }
-    
+
     void setFreeSpace(short freeSpace) {
         // Sets the total free space of the page.
         setShortValue(freeSpace,FREESPACE_OFFSET);
-    }   
+    }
+
+    ////////////////////////////
+    // GET information blocks
+    ////////////////////////////
+
+    PageId getCurPage() {
+        // Gets the current page's id.
+        PageId pageId = new PageId();
+        pageId.pid = getIntValue(0);
+        return pageId;
+    }
+    
+    PageId getPrevPage() {
+        // Gets the previous page's id.
+        return null;
+    }
+
+    PageId getNextPage() {
+        // Gets the next page's id.
+        return null;
+    }
      
-    public void updateRecord(RID rid, heap.Tuple record) {
-        // Updates a record on the page.
+    short getType() {
+        // Gets the arbitrary type of the page.
+                return 1;
+    }
+  
+    short getSlotCount() {
+        // Gets the number of slots on the page.
+        return getShortValue(SLOTCNT_OFFSET);
+    }
+    
+    short getFreeSpace() {
+        // Gets the amount of free space (in bytes).
+        return getShortValue(FREESPACE_OFFSET);
+    }
+
+    short getContFreeSpace() {
+        // Gets the amount of continous free space (in bytes).
+        // this is defined as space between tail of slots block and head of last record
+        short slotTailOffset = (short)(TOTAL_OFFSET+getSlotCount()*SLOT_SIZE);
+        short recordHeadOffset = PAGE_SIZE;
+
+        for (int index=(getSlotCount()-1); index>=0; index--) {
+            // backward iterate through all slots.
+            // this makes sure a removed record won't be selected
+
+            if (getSlotOffset(index) >= 0) {
+                // last record found
+                recordHeadOffset = getSlotOffset(index);
+                break;
+            }
+        }
+
+        return (short)(recordHeadOffset - slotTailOffset);
+    }
+   
+    ////////////////////////////
+    // utilities
+    ////////////////////////////
+   
+    void print() {
+        // Prints the contents of a heap file page.
+        List<String> log = new ArrayList<String>();
+        log.add("*********************\n");
+        log.add("Page id = " + getCurPage().pid + "\n");
+        log.add("---------------------\n");
+
+        log.add("(1) " + String.valueOf(getIntValue(THISID_OFFSET)) + " ");                // this pid
+        log.add("(2) " + String.valueOf(getIntValue(PREVID_OFFSET)) + " ");   // prev pid
+        log.add("(3) " + String.valueOf(getIntValue(NEXTID_OFFSET)) + " "); // next pid
+
+        log.add("(4) " + String.valueOf(getShortValue(SLOTCNT_OFFSET)) + " ");   // slot count
+        log.add("(5) " + String.valueOf(getShortValue(TYPE_OFFSET)) + " "); // type
+        log.add("(6) " + String.valueOf(getShortValue(FREESPACE_OFFSET)) + " "); // free space
+
+        for (int index = 1; index <= getSlotCount(); index++) {
+            short offset_var = getShortValue(TOTAL_OFFSET+(index-1)*SHORT_FIELD_SIZE*2);
+            short length_var = getShortValue(TOTAL_OFFSET+(index-1)*SHORT_FIELD_SIZE*2+SHORT_FIELD_SIZE);
+            log.add("(slot:" + index + ") " + offset_var + " " + length_var + " ");
+        }
+        
+        log.add("\n*********************\n");
+
+        // Print all logs
+        for (int index = 0; index < log.size(); index++) {
+            System.out.print(log.get(index));
+        }
     }
 }

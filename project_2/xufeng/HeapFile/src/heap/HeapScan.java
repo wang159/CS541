@@ -25,10 +25,11 @@ public class HeapScan {
 
     public boolean hasNext() {
         //
-
+        return true;
     }
 
     public Tuple getNext(RID rid) {
         //
+                return null;
     }
 }

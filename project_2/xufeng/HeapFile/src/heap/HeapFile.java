@@ -87,7 +87,7 @@ public class HeapFile {
         // Inserts a new record into the page.
         
         // find a page to insert to
-        PageId insertToPageId = locateInsertPageId(record.length, curDirPageIndex);
+        PageId insertToPageId = locateInsertPageId(record.length, HFPage.SLOT_SIZE, curDirPageIndex);
 
         // insert a record
         RID thisRID = hfp_list.get(insertToPageId.pid).insertRecord(record);
@@ -95,16 +95,21 @@ public class HeapFile {
         return thisRID;
     }
     
-    PageId locateInsertPageId(int rSize, int dirPageIndex) {
+    PageId locateInsertPageId(int rSize, int sSize, int dirPageIndex) {
         // locate a suitable page to insert this record on this directory page
+		// >> Parameters:
+		// rSize = record size; 
+		// sSize = slot info size; 
+		// dirPageIndex = index of current directory page
 
         PageId insertToPageId = new PageId();
-        insertToPageId.pid = -1; // -1 = no page selected
+        insertToPageId.pid = -1;     // -1 = no page selected
+		int totalSize = rSize+sSize; // free bytes needed in total
 
         // Search this directory page
         HFPage thisPage = hfp_list.get(dirPageIndex);
         short slotCnt = thisPage.getSlotCount();
-        System.out.println(">> locateInsertPageId: in directory page pid = " + thisPage.getCurPage().pid + ", " + slotCnt + " slot(s) found! \n");
+        System.out.println(">> locateInsertPageId: in directory page pid = " + thisPage.getCurPage().pid + ", " + slotCnt + " slot(s) found!");
         for (int sIndex = 0; sIndex < slotCnt; sIndex++) {
             // for each slot in this directory page
             RID thisRID = new RID();
@@ -114,10 +119,10 @@ public class HeapFile {
             byte[] thisRecord = thisPage.selectRecord(thisRID);
             int pid = getPid(thisRecord);
             System.out.println(">> locateInsertPageId: pid = " + pid + "\n");            
-            System.out.println(">> locateInsertPageId: freeBytes = " + hfp_list.get(pid).getFreeSpace() + "; contFreeBytes = " + hfp_list.get(pid).getContFreeSpace() + "; rSize = " + rSize + "\n");
-            if (rSize <= hfp_list.get(pid).getFreeSpace()) {
+            System.out.println(">> locateInsertPageId: freeBytes = " + hfp_list.get(pid).getFreeSpace() + "; contFreeBytes = " + hfp_list.get(pid).getContFreeSpace() + "; totalSize = " + totalSize + "\n");
+            if (totalSize <= hfp_list.get(pid).getFreeSpace()) {
                 // this page can host this record
-                if (rSize <= hfp_list.get(pid).getContFreeSpace()) {
+                if (totalSize <= hfp_list.get(pid).getContFreeSpace()) {
                     // and the continous free block is large enough
                     insertToPageId.pid = pid;
                 } else {

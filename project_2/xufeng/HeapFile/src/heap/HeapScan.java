@@ -56,7 +56,7 @@ public class HeapScan {
     }
 
     public Tuple getNext(RID rid) {
-        // Get next record. Return NULL is no more record can be found
+        // Get next record. Return NULL if no more record can be found
         Tuple thisTuple = new Tuple();
 		RID nextRid = null;
 
@@ -94,6 +94,7 @@ public class HeapScan {
 			thisTuple = null;
 		} else {
 			thisTuple.tuple = hfp_list.get(curIndex).selectRecord(curRid);
+			System.out.println(">> HeapScan: next record is found on page = "+curIndex+"; slot = " +curRid.slotno);
 		}
 
         return thisTuple;

@@ -98,7 +98,8 @@ public class HFPage extends Page {
         setSlotCount((short)(getSlotCount()+1)); // increate the slot count by 1
 
         // add new record data
-        System.out.println(">> insertRecord: adding " + record.length + " bytes data to pos = " + newRecordPOS+" with "+getFreeSpace()+" bytes left.\n");
+        System.out.println(">> insertRecord: insert '"+Convert.getIntValue(0,record)+"', in page "+getCurPage().pid+", slot "+newRID.slotno);
+        System.out.println(">> insertRecord: insert '"+Convert.getIntValue(0,record)+"', adding " + record.length + " bytes data to pos = " + newRecordPOS+" with "+getFreeSpace()+" bytes left.");
         for (int index = newRecordPOS; index < (newRecordPOS + record.length); index++) {
             getData()[index] = record[index-newRecordPOS];
         }

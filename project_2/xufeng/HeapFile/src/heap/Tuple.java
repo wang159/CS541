@@ -13,10 +13,8 @@ import java.util.Arrays;
 import chainexception.ChainException;
 
 public class Tuple {
-    // variables
-    
+    // variables  
     byte [] tuple;
-    int tuple_len;
 
     // functions
 
@@ -25,9 +23,7 @@ public class Tuple {
     }
 
     public Tuple(byte [] tuple_in, int r_start, int r_len) {
-
-        tuple = Arrays.copyOfRange(tuple_in, r_start, r_start+r_len);
-
+        tuple = Arrays.copyOfRange(tuple_in, r_start, r_start+r_len+1);
     }
 
     public void setTupleByteArray(byte [] tuple_in) {

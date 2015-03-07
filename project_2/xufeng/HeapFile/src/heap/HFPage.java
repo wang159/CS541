@@ -128,12 +128,31 @@ public class HFPage extends Page {
 
     public RID firstRecord() {
         // Gets the RID of the first record on the page, or null if none.
-        return null;
+        RID firstRid = new RID();
+
+        if (getSlotCount() > 0) {
+            // there are records
+            firstRid.pageno = getCurPage();
+            firstRid.slotno = 0; // first record slot number is always zero
+        } else {
+            firstRid = null;
+        }
+
+        return firstRid;
     }
     
     RID nextRecord(RID curRid) {
         // Gets the next RID after the given one, or null if no more.
-                return null;
+		int nextSlotNo = curRid.slotno+1; // next slot number
+
+		if (nextSlotNo < getSlotCount()) {
+			// there are record
+			curRid.slotno = curRid.slotno+1;
+	    } else {
+			curRid = null;
+		}
+
+        return curRid;
     }
 
     boolean hasNext(RID curRid) {
@@ -199,7 +218,7 @@ public class HFPage extends Page {
      
     short getType() {
         // Gets the arbitrary type of the page.
-                return 1;
+        return getShortValue(TYPE_OFFSET);
     }
   
     short getSlotCount() {

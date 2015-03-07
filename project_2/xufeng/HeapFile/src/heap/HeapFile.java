@@ -15,7 +15,7 @@ import chainexception.ChainException;
 
 public class HeapFile {
     String heapFileName;
-    List<HFPage> hfp_list; // list of all pages. index is pageID
+    List<HFPage> hfp_list; // list of all pages. index is pageID. First page is always the first directory page
     int curDirPageIndex;
     
     public HeapFile () {
@@ -143,7 +143,7 @@ public class HeapFile {
 
     public int getRecCnt() {
         // Get number of records in the file
-        HeapScan scan = new openScan();
+        HeapScan scan = openScan();
         RID rid = new RID(); // dummy record ID
 		int recCnt = 0; // record count
         Tuple tuple = new Tuple(); // dummy tuple
@@ -162,10 +162,12 @@ public class HeapFile {
 
     public HeapScan openScan() {
         // Open a HeapScan protocol
-        HeapScan scan = new openScan();
-        scan.hfp_list = hfp_list;
+        HeapFile hf = new HeapFile();     // empty HeapFile with no initialization
+        hf.hfp_list = hfp_list;           // load hfp_list to new HeapFile
+        HeapScan scan = new HeapScan(hf);
         return scan;
     }
+
     ////////////////////////////
     // record page operations
     ////////////////////////////
@@ -176,6 +178,7 @@ public class HeapFile {
 
         PageId cuPageId = new PageId(hfp_list.size());
         recPage.setCurPage(cuPageId);    // set page ID
+		recPage.setType((short)1);       // set record page type (1)
 
         hfp_list.add(recPage);           // add to master page list
 
@@ -195,6 +198,7 @@ public class HeapFile {
 
         PageId cuPageId = new PageId(hfp_list.size());
         dirPage.setCurPage(cuPageId);      // set page ID
+		dirPage.setType((short)0);         // set directory page type (0)
         curDirPageIndex = hfp_list.size(); // set to current page list
 
         hfp_list.add(dirPage);             // add to master page list

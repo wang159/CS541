@@ -99,8 +99,8 @@ public class BufMgr {
 			
 			// If the pin_count was 0 before the call, the page was a
 			// replacement candidate, but is no longer a candidate.
-			///System.out.println("index is " + index);
-
+			//System.out.println("index is " + index);
+			
 			if(frDescriptor[index].getPinCount() == 0)
 				queue.remove(index);
 			// If it is, increment the pin_count and return a pointer to this
@@ -274,7 +274,7 @@ public class BufMgr {
 				// Remove it from the hash,bufferPool,bufferDescriptor
 				frHashTab.DeleteFromDir(globalPageId,i);
 				bufPool[i] = null;
-				frDescriptor[i] = null;
+				//frDescriptor[i] = null;
 				Minibase.DiskManager.deallocate_page(new PageId(
 						globalPageId.pid));
 			} catch (Exception e) {

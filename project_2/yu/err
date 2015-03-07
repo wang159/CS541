@@ -1,0 +1,157 @@
+/usr/bin/javac  -cp .:..:lib/bufmgrAssign.jar -d bin src/*/*.java
+/usr/bin/java  -cp .:..:lib/bufmgrAssign.jar:bin tests.BMTest
+
+Running Buffer Management tests....
+Creating database...
+Replacer: Clock
+
+  Test 1 does a simple test of normal buffer manager operations:
+  - Allocate a bunch of new pages
+index is 1
+index is 1
+  - Write something on each one
+index is 3
+  - Read that something back from each one
+   (because we're buffering, this is where most of the writes happen)
+  - Free the pages again
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+index is 5
+  Test 1 completed successfully.
+
+  Test 2 exercises some illegal buffer manager operations:
+  - Try to pin more pages than there are frames
+index is 5
+index is 2
+*** Could not allocate 101 new pages in the database.
+diskmgr.DiskMgrException: DB.java: newPage() failed
+diskmgr.DiskMgrException: DB.java: pinPage() failed
+java.lang.NullPointerException
+	at bufmgr.BufMgr.pinPage(BufMgr.java:104)
+	at diskmgr.DiskMgr.pinPage(DiskMgr.java:881)
+	at diskmgr.DiskMgr.allocate_page(DiskMgr.java:326)
+	at bufmgr.BufMgr.newPage(BufMgr.java:221)
+	at tests.BMDriver.test2(BMTest.java:313)
+	at tests.BMDriver.runAllTests(BMTest.java:116)
+	at tests.BMDriver.runTests(BMTest.java:88)
+	at tests.BMTest.main(BMTest.java:643)
+
+  Test 3 exercises some of the internals of the buffer manager
+  - Allocate and dirty some new pages, one at a time, and leave some pinned
+index is 5
+index is 2
+*** Could not allocate new page number 01
+diskmgr.DiskMgrException: DB.java: newPage() failed
+diskmgr.DiskMgrException: DB.java: pinPage() failed
+java.lang.NullPointerException
+	at bufmgr.BufMgr.pinPage(BufMgr.java:104)
+	at diskmgr.DiskMgr.pinPage(DiskMgr.java:881)
+	at diskmgr.DiskMgr.allocate_page(DiskMgr.java:326)
+	at bufmgr.BufMgr.newPage(BufMgr.java:221)
+	at tests.BMDriver.test3(BMTest.java:490)
+	at tests.BMDriver.runAllTests(BMTest.java:118)
+	at tests.BMDriver.runTests(BMTest.java:88)
+	at tests.BMTest.main(BMTest.java:643)
+
+...Buffer Management tests failed.
+
+Error encountered during buffer manager tests:
+
+make: *** [xx] Error 1

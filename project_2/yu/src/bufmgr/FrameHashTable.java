@@ -5,8 +5,7 @@ package bufmgr;
 import java.util.Vector;
 
 import global.PageId;
-import chainexception.ChainException;
-import diskmgr.DuplicateEntryException;
+
 
 class bucket {
 
@@ -19,19 +18,22 @@ class bucket {
 	}
 	public void Add(FPpair newpair){
 		int addflag=0;
-		for(FPpair obj:buc){
-			if(obj.getPage()==newpair.getPage()){
+		for(int i = 0; i<buc.size(); i = i + 1){
+			if(buc.get(i).getPage()==newpair.getPage() && buc.get(i).getFrame()==newpair.getFrame()){
+				System.out.println("I'm here");
 				addflag=1;//throw new DuplicateEntryException(null,"Page exists in the buffer.");
 			}
 		}
 		if(addflag==0){
+			
 			buc.add(newpair);
 		}
 	}
 	public void Delete(FPpair newpair){
-		for(FPpair obj:buc){
-			if(obj.getPage()==newpair.getPage()){
-				buc.remove((FPpair)obj);
+		for(int i = 0; i<buc.size(); i = i + 1){
+			if(buc.get(i).getPage()==newpair.getPage() && buc.get(i).getFrame()==newpair.getFrame()){
+				//System.out.println("I'm here. page is " + buc.get(i).getPage());
+				buc.remove(i);
 			}
 			
 		}
@@ -40,9 +42,9 @@ class bucket {
 	public FPpair getpair(int pid){
 		//Iterator<FPpair> i=buc.iterator();
 		//System.out.println(pid);
-		for (FPpair obj : buc) {
-        		if (obj.getPage()==pid) {
-            			return obj;
+		for (int i = 0; i<buc.size(); i = i + 1) {
+        		if (buc.get(i).getPage()==pid) {
+            			return buc.get(i);
       		        }
   		}
 		return null;
@@ -75,6 +77,7 @@ public class FrameHashTable {
     public void DeleteFromDir(PageId pageid,int fid) {
     	if(pageid!=null){
     		int bucketid = HashFunction(pageid.pid);
+    		//System.out.println("bucket id is: "+bucketid);
     		FPpair newpair = new FPpair(pageid.pid,fid);
     		dir[bucketid].Delete(newpair);
     	}

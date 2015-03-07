@@ -306,6 +306,7 @@ public class DiskMgr implements GlobalConst {
     
     int run_size = runsize;
     int num_map_pages = (num_pages + bits_per_page -1)/bits_per_page;
+    //System.out.println("num_map_pages: " + num_map_pages);
     int current_run_start = 0; 
     int current_run_length = 0;
     
@@ -319,9 +320,11 @@ public class DiskMgr implements GlobalConst {
 	
       pgid.pid = 1 + i;
       // Pin the space-map page.
-      
+      //System.out.println("Allocating a page. page " + pgid.pid  +" will be pinned");
       Page apage = new Page();
+      //System.out.println("I'm here1");
       pinPage(pgid, apage, false /*read disk*/);
+      //System.out.println("I'm here2");
       
       pagebuf = apage.getpage();
       byteptr = 0;
@@ -724,8 +727,8 @@ public class DiskMgr implements GlobalConst {
       
       // This loop goes over each page in the space map.
       PageId pgid = new PageId();
-      System.out.println ("num_map_pages = " + num_map_pages);
-      System.out.println ("num_pages = " + num_pages);
+      //System.out.println ("num_map_pages = " + num_map_pages);
+      //System.out.println ("num_pages = " + num_pages);
       for(int i=0; i< num_map_pages; i++)
 	{//start forloop01
 	  
@@ -872,13 +875,12 @@ public class DiskMgr implements GlobalConst {
    */
   private void pinPage(PageId pageno, Page page, boolean emptyPage)
     throws DiskMgrException {
-	//System.out.println(pageno.pid);
+	//System.out.println("pinning this page: "+pageno.pid);
     try {
-    	
+    	//System.out.println("I'm here11");
       Minibase.BufferManager.pinPage(pageno, page, emptyPage);
     }
     catch (Exception e) {
-    	//System.out.println(pageno.pid);
       throw new DiskMgrException(e,"DB.java: pinPage() failed");
     }
 

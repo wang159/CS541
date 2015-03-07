@@ -1,8 +1,10 @@
 package bufmgr;
-import chainexception.ChainException;
+import chainexception.*;
+
 public class HashEntryNotFoundException extends ChainException {
-	public HashEntryNotFoundException(Exception e, String name)
-	  { 
-	    super(e, name); 
-	  }
+	public HashEntryNotFoundException(Exception ex, String name)
+    { 
+      super(ex, name); 
+    }
+
 }

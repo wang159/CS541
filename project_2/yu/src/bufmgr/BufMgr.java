@@ -83,8 +83,11 @@ public class BufMgr {
 			// page.
 			frDescriptor[index].IncrePinCount();
 			page.setpage(bufPool[index]);
-			//rep.increGlobalOpId();
-			//rep.setFrameOpId(index);
+			rep.increGlobalOpId();
+			rep.setFrameOpId(index);
+			if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
+				flushPage(frDescriptor[index].getPageId());
+			}
 		}
 		// If the page is not in the pool,
 		else 
@@ -105,6 +108,8 @@ public class BufMgr {
 				}
 				index = hasMaxLIRS(LIRSresult);
 				*/
+				rep.increGlobalOpId();
+				rep.setFrameOpId(index);
 				//index = getFirstEmptyFrame();
 			
 				//if ((bufDescr[index] != null) && bufDescr[index].isDirtyBit()) {
@@ -126,6 +131,8 @@ public class BufMgr {
 						LIRSresult[numbufs] = rep.result(numbufs);
 					}
 					index = hasMaxLIRS(LIRSresult);
+					rep.increGlobalOpId();
+					rep.setFrameOpId(index);
 					if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
 						
 						flushPage(frDescriptor[index].getPageId());

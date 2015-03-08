@@ -66,8 +66,9 @@ public class HeapFile {
     }
     
     public Tuple getRecord(RID rid) {
-        return null;
-
+		Tuple thisTuple = new Tuple();
+		thisTuple.tuple = readPage(rid.pageno.pid).selectRecord(rid);
+        return thisTuple;
     }
 
     public RID insertRecord(byte[] record) throws InvalidUpdateException {
@@ -77,10 +78,10 @@ public class HeapFile {
         PageId insertToPageId = locateInsertPageId(record.length, HFPage.SLOT_SIZE, curDirPageId);
 
         // insert a record
-		HFPage thisDirPage = new HFPage();
-		diskMgr.read_page(insertToPageId, thisDirPage);  // read directory page from disk
-		RID thisRID = thisDirPage.insertRecord(record);  // add pageId(int) to the record
-		diskMgr.write_page(insertToPageId, thisDirPage); // write directory page to disk
+		HFPage thisPage = new HFPage();
+		diskMgr.read_page(insertToPageId, thisPage);  // read directory page from disk
+		RID thisRID = thisPage.insertRecord(record);  // add pageId(int) to the record
+		diskMgr.write_page(insertToPageId, thisPage); // write directory page to disk
 
         return thisRID;
     }
@@ -134,7 +135,25 @@ public class HeapFile {
     public boolean updateRecord(RID rid, heap.Tuple record) throws InvalidUpdateException {
         // Updates a record on the page.
         
-        return false;
+		// get the current record tuple
+		Tuple curTuple = getRecord(rid);
+		System.out.println("updating record ..");
+		// if exists and of the same length, update it
+		if (curTuple != null) {
+			// record exists
+			System.out.println("updating record .. length = "+ curTuple.getLength()+" with "+record.getLength());
+			if (curTuple.getLength() == record.getLength()) {
+				// the two records are of same length
+				HFPage thisDirPage = new HFPage();
+				diskMgr.read_page(rid.pageno, thisDirPage);  // read directory page from disk
+				System.out.print("updated record from "+record);
+				thisDirPage.updateRecord(rid, record);           // add pageId(int) to the record
+				System.out.print("to "+record+"\n");
+				diskMgr.write_page(rid.pageno, thisDirPage); // write directory page to disk				
+			}
+		}
+		
+        return true;
     }
 
     public int getRecCnt() {

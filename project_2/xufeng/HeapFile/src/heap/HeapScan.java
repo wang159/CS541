@@ -96,8 +96,8 @@ public class HeapScan {
 		if (curRid == null) {
 			thisTuple = null;
 		} else {
-			thisTuple.tuple = hf.readPage(curPageId.pid).selectRecord(curRid);
-			System.out.println(">> HeapScan: next record is found on page = "+curPageId.pid+"; slot = " +curRid.slotno);
+			thisTuple.tuple = readPage(curPageId.pid).selectRecord(curRid);
+			System.out.println(">> HeapScan: next record is found on page = "+curPageId.pid+"; slot = " +curRid.slotno+" with a tuple length = "+thisTuple.getLength());
 
 			rid.pageno = curRid.pageno;
 			rid.slotno = curRid.slotno;

@@ -123,7 +123,7 @@ public class BufMgr {
 						LIRSresult[i] = -1;
 					}
 					for(int i = 0; i<numbufs; i=i+1){
-						LIRSresult[emptylist.get(i)] = rep.result(emptylist.get(i));
+						LIRSresult[numbufs] = rep.result(numbufs);
 					}
 					index = hasMaxLIRS(LIRSresult);
 					if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {

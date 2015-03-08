@@ -69,8 +69,7 @@ public class BufMgr {
 	* @param page the pointer point to the page.
 	* @param emptyPage true (empty page)? false (non­empty page)
 	*/
-	public void pinPage(PageId pageno, Page page, boolean emptyPage)
-			throws DiskMgrException, BufferPoolExceededException,HashEntryNotFoundException{
+	public void pinPage(PageId pageno, Page page, boolean emptyPage) throws ChainException{
 		FPpair fp = new FPpair();
 		fp = frHashTab.getPair(pageno);
 		if(fp!=null) // The page is already in the buffer pool
@@ -99,26 +98,23 @@ public class BufMgr {
 				index = emptylist.get(0);
 				emptylist.remove(0);
 				/*
-				int[] LIRSresult = new int[numbufs];
-				for(int i = 0; i<numbufs; i=i+1){
-					LIRSresult[i] = -1;
+				System.out.println("emptylist:");
+				for(int i = 0; i< emptylist.size();i++){
+					System.out.print(emptylist.get(i)+",");
 				}
-				for(int i = 0; i<numbufs; i=i+1){
-					LIRSresult[emptylist.get(i)] = rep.result(emptylist.get(i));
-				}
-				index = hasMaxLIRS(LIRSresult);
+				System.out.println();
 				*/
 				rep.increGlobalOpId();
 				rep.setFrameOpId(index);
 				//index = getFirstEmptyFrame();
-			
-				//if ((bufDescr[index] != null) && bufDescr[index].isDirtyBit()) {
+				
 				if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
 					
 					flushPage(frDescriptor[index].getPageId());
-					//directory.remove(bufDescr[index].getPageNumber().pid);
+
 					frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
 				}
+				frDescriptor[index] = new FrameDesc(new PageId(pageno.pid),1, false);
 
 			} 
 			else{
@@ -139,6 +135,7 @@ public class BufMgr {
 						//directory.remove(bufDescr[index].getPageNumber().pid);
 						frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
 					}
+					frDescriptor[index] = new FrameDesc(new PageId(pageno.pid),1, false);
 				}
 				else{
 					throw new BufferPoolExceededException(null,"No unpinned buffer frame.");
@@ -157,7 +154,7 @@ public class BufMgr {
 			//bufPool[index].setpage((temp.getpage().clone()));
 			bufPool[index]=temp.getpage();
 			page.setpage(bufPool[index]);
-			frDescriptor[index] = new FrameDesc(new PageId(pageno.pid),1, false);
+			
 			//directory.put(pageno.pid, index);
 			frHashTab.AddToDir(pageno, index);
 		}
@@ -180,22 +177,17 @@ public class BufMgr {
 	* @param dirty the dirty bit of the frame
 	*/
 	public void unpinPage(PageId pageno, boolean dirty)
-			throws PageUnpinnedException, HashEntryNotFoundException,
-			InvalidPageNumberException, FileIOException, IOException,
-			DiskMgrException {
+			throws ChainException {
 		FPpair fp = new FPpair();
+		//System.out.println("Unpinning a page.");
 		fp = frHashTab.getPair(pageno);
 		//if(directory.conatin(pageno.pid)){
 		if(fp!=null){
 			int index = fp.getFrame();
 			//System.out.println("pageid: "+ pageno.pid);
-			//System.out.println("frameid: "+ index);
+			//System.out.println("unpinning frameid: "+ index);
 			//System.out.println("pin count: "+bufDescr[index].getPin_count());			
-/*
-			 * If pin_count=0 before this call, throw an exception to report
-			 * error. (For testing purposes, we ask you to throw an exception
-			 * named PageUnpinnedException in case of error.)
-			 */
+			
 			if(frDescriptor[index].getPinCount() == 0){
 				throw new PageUnpinnedException(null, "Trying to unpin a page that is already unpinned.");
 			} 
@@ -208,6 +200,7 @@ public class BufMgr {
 				if (frDescriptor[index].getPinCount() == 0){
 					//queue.add(index);
 					emptylist.add(index);
+					//frHashTab.DeleteFromDir(pageno, index);
 				}
 			}
 		}
@@ -230,7 +223,7 @@ public class BufMgr {
 	 * @throws BufferPoolExceededException 
 	*/
 	public PageId newPage(Page firstpage, int howmany) 
-			throws DiskMgrException, HashEntryNotFoundException, BufferPoolExceededException{
+			throws ChainException{
 		PageId id = new PageId();
 		if (isFull()) 
 			return null;
@@ -260,20 +253,21 @@ public class BufMgr {
 	*
 	* @param globalPageId the page number in the data base.
 	*/
-	public void freePage(PageId globalPageId) throws PagePinnedException,
-			InvalidRunSizeException, InvalidPageNumberException,
-			FileIOException, DiskMgrException, IOException,ChainException {
+	public void freePage(PageId globalPageId) throws ChainException {
 		// Check whether this is a valid page or not
+		//System.out.println("freeing a page.");
 		FPpair fp = new FPpair(); 
 		fp = frHashTab.getPair(globalPageId);
 		if (fp!=null){	
-			int i;
+			int index;
 			try {
 				// Getting the index of this page
-				i = fp.getFrame();
+				index = fp.getFrame();
+				//System.out.println("freeing pageid: "+ globalPageId.pid);
+				//System.out.println("freeing framdid: "+ index);
 				// If it has more than one pin on it
 				// throw an Exception
-				if (frDescriptor[i].getPinCount() > 0){
+				if (frDescriptor[index].getPinCount() > 0){
 					throw new PagePinnedException(null, "Trying to free a page that is being pinned.");
 				}
 				// If pin count !=0 unpin this page
@@ -281,16 +275,26 @@ public class BufMgr {
 				//if (frDescriptor[i].getPinCount() == 1)
 					//unpinPage(frDescriptor[i].getPageId(),frDescriptor[i].isDirty());
 				// If it is dirty flush it
-				if(frDescriptor[i].isDirty())
+				if(frDescriptor[index].isDirty())
 					try {
 						flushPage(globalPageId);
 					} catch (Exception e) {
 						throw new FreePageException(null, "Unable to flush a page.");
 					}
 				// Remove it from the hash,bufferPool,bufferDescriptor
-				frHashTab.DeleteFromDir(globalPageId,i);
-				bufPool[i] = null;
+				frHashTab.DeleteFromDir(globalPageId,index);
+				bufPool[index] = null;
 				//frDescriptor[i] = null;
+				int addflag = 1;
+				for(int i = 0; i <emptylist.size();i = i+1){
+					if(emptylist.get(i) == index){
+						addflag = 0;
+					}
+				}
+				if(addflag == 1){
+					emptylist.add((Integer)index);
+				}
+				
 				Minibase.DiskManager.deallocate_page(new PageId(
 						globalPageId.pid));
 			} catch (Exception e) {
@@ -311,8 +315,7 @@ public class BufMgr {
 	*
 	* @param pageid the page number in the database.
 	*/
-	public void flushPage(PageId pageid) throws HashEntryNotFoundException,
-			DiskMgrException {
+	public void flushPage(PageId pageid) throws ChainException {
 		Page apage = null;
 		FPpair fp = frHashTab.getPair(pageid); 
 		int i = fp.getFrame();
@@ -333,8 +336,7 @@ public class BufMgr {
 	* Used to flush all dirty pages in the buffer pool to disk
 	*
 	*/
-	public void flushAllPages() throws HashEntryNotFoundException,
-			DiskMgrException {
+	public void flushAllPages() throws ChainException {
 		for (int i = 0; i < numbufs; i++) {
 			if(frDescriptor[i] != null)
 				flushPage(frDescriptor[i].getPageId());

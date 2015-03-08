@@ -55,36 +55,29 @@ public class HeapFile implements GlobalConst
 	int j = 0;
 
 	public RID insertRecord(byte[] record) throws 
-	ChainException, IOException, SpaceNotAvailableException {
+	ChainException, IOException {
 		
 //		Minibase.BufferManager.pinPage(header_pid, hfpage, false);
+		if(record.length > MAX_TUPSIZE) {
+			throw new SpaceNotAvailableException("Space not available");
+		}
 		RID rid = new RID();
 		HFPage hfpageptr = new HFPage();
-System.out.println("@@@@@@@@@@@@ -- 00");
+// System.out.println("@@@@@@@@@@@@ -- 00");
 		PageId pid = new PageId();
 		pid = hfpage.getNextPage();
 //System.out.println("header_pid:"+header_pid.pid);
 //System.out.println("next_pid:"+pid.pid);
 //System.out.println("curr_pid:"+hfpage.getCurPage().pid);
-System.out.println("@@@@@@@@@@@@ -- 0");
-		try {
-System.out.println("@@@@@@@@@@@@ -- 1");
-			if(record.length > MAX_TUPSIZE){
-System.out.println("@@@@@@@@@@@@ -- 2");
-				throw new SpaceNotAvailableException("Exception");
-			}
-		}
-		catch (SpaceNotAvailableException e){
-System.out.println("@@@@@@@@@@@@ -- 3");
-			return rid;
-		}
+// System.out.println("@@@@@@@@@@@@ -- 0");
+		
 
 		while(pid.pid != -1){
 			Minibase.BufferManager.pinPage(pid, hfpageptr, false);
 			hfpageptr.setCurPage(pid);
 			if((record.length+4) <= hfpageptr.getFreeSpace()){
 				rid = hfpageptr.insertRecord(record);
- System.out.println("1-"+(i++)+"	freespace:"+hfpageptr.getFreeSpace()+"	recordlength:"+record.length+"	Rec_Cnt:"+Rec_Cnt+"	PageId:"+pid.pid+"	rid.pageno.pid:"+rid.pageno.pid);
+ // System.out.println("1-"+(i++)+"	freespace:"+hfpageptr.getFreeSpace()+"	recordlength:"+record.length+"	Rec_Cnt:"+Rec_Cnt+"	PageId:"+pid.pid+"	rid.pageno.pid:"+rid.pageno.pid);
 				Rec_Cnt++;
 				Minibase.BufferManager.unpinPage(pid, true);
 				return rid;

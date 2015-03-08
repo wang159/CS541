@@ -29,13 +29,11 @@ public class HeapScan {
 
     public HeapScan(HeapFile hf_in) {
 		hf = hf_in;
-		diskMgr=hf.diskMgr;
+		//diskMgr=hf.diskMgr;
 
-	    curPageId = diskMgr.get_file_entry(hf.heapFileName);  // get the first page ID of the heap file
-
-		System.out.println("HeapScan: loading from file '"+hf.heapFileName+"'");
-
-		System.out.println("HeapScan: start with Page "+curPageId.pid+" from file"+hf.heapFileName);
+	    curPageId = Minibase.DiskManager.get_file_entry(hf_in.heapFileName);  // get the first page ID of the heap file
+		System.out.println("HeapScan: loading from file '"+hf_in.heapFileName+"'");
+		System.out.println("HeapScan: start with Page "+curPageId.pid+" from file"+hf_in.heapFileName);
     }
 
     protected void finalize() 
@@ -100,7 +98,11 @@ public class HeapScan {
 		} else {
 			thisTuple.tuple = hf.readPage(curPageId.pid).selectRecord(curRid);
 			System.out.println(">> HeapScan: next record is found on page = "+curPageId.pid+"; slot = " +curRid.slotno);
+
+			rid.pageno = curRid.pageno;
+			rid.slotno = curRid.slotno;
 		}
+
 
         return thisTuple;
     }
@@ -112,7 +114,7 @@ public class HeapScan {
 		// utility function for easier diskMgr read_page
 		PageId thisPageId = new PageId(thisPageIdNum);
 		HFPage thisPage = new HFPage();
-		diskMgr.read_page(thisPageId, thisPage);
+		Minibase.DiskManager.read_page(thisPageId, thisPage);
 
 		return thisPage;
 	}

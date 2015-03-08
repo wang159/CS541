@@ -5,7 +5,7 @@ import global.PageId;
 
 
 public class LIRS {
-	private PageId page_id;
+	private final int INF = 9999;
 	private int FrNum =0;
 	private static int GlobalOpId;
 	private int[][] frameOpIdPair;
@@ -15,11 +15,8 @@ public class LIRS {
 		frameOpIdPair = new int[FrNum][2];
 		for(int i =0;i<FrNum;i=i+1){
 			frameOpIdPair[i][0] = 0;
-			frameOpIdPair[i][1] = 0;
+			frameOpIdPair[i][1] = -INF;
 		}
-	}
-	public LIRS(PageId pageid){
-		page_id = pageid;
 	}
 	public void increGlobalOpId(){
 		GlobalOpId = GlobalOpId + 1;
@@ -53,6 +50,6 @@ public class LIRS {
 		return GlobalOpId - frameOpIdPair[frameId][1];
     }
     public int result(int fid){
-    	return (reuse_dis(fid)>=recency(fid)?reuse_dis(fid):recency(fid));
+    	return (reuse_dis(fid)>recency(fid)?reuse_dis(fid):recency(fid));
     }
 } 

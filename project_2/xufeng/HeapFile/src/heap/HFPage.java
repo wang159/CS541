@@ -123,6 +123,22 @@ public class HFPage extends Page {
     
     public void updateRecord(RID rid, heap.Tuple record) {
         // Updates a record on the page.
+		// the validity of this update should have been checked by the HeapFile layer
+        short recordLength = getSlotLength(rid.slotno);
+        short recordOffset = getSlotOffset(rid.slotno);
+        System.out.println(">> updateRecord: rid.page = "+rid.pageno+"; rid.slotno = "+rid.slotno+"; page_size = " + PAGE_SIZE +"; recordLength = " + recordLength + "; recordOffset = " + recordOffset + "\n");
+
+		byte[] thisData = getData(); // get current data block
+		byte[] updateByte = record.getTupleByteArray(); // get record byte array to be updated
+
+		for (int index=recordOffset; index<(recordOffset+recordLength); index++) {
+			// replace the record byte by byte
+			thisData[index] = updateByte[index-recordOffset];
+		}
+
+		setData(thisData); // store the updated data back
+
+        return;		
     }
 
     public void deleteRecord(RID rid) {

@@ -35,9 +35,10 @@ public class HeapFile {
 			System.out.println("Creating new heap file '" + fileName + "'..."); 
 			latestPageId = null;
 
-			diskMgr.add_file_entry(heapFileName, new PageId(0));  // register this heap file to header page
+
 
             firstPageId=createDirPage(); // create directory page; this is first page
+			diskMgr.add_file_entry(heapFileName, firstPageId);  // register this heap file to header page
             createRecPage();             // create record page
         } else {
             // existing heap file found
@@ -47,7 +48,7 @@ public class HeapFile {
         }
     }
 
-    public boolean deleteRecord(RID rid) {
+    public void deleteRecord(RID rid) {
         // Deletes a record from the page.
 		// >> parameters
 		// rid: the ID of the record to be deleted.
@@ -57,9 +58,10 @@ public class HeapFile {
 		// no page compacting operation is executed. Therefore, the delete record operation becomes very simple by
 		// setting the slot record offset to -1.
 
-		//hfp_list.get(rid.pageno.pid).deleteRecord(rid);
-
-        return true;
+		HFPage thisDirPage = new HFPage();
+		diskMgr.read_page(rid.pageno, thisDirPage);  // read directory page from disk
+		thisDirPage.deleteRecord(rid);  			 // add pageId(int) to the record
+		diskMgr.write_page(rid.pageno, thisDirPage); // write directory page to disk
     }
     
     public Tuple getRecord(RID rid) {

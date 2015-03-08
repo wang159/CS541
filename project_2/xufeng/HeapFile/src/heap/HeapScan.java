@@ -31,8 +31,10 @@ public class HeapScan {
 		hf = hf_in;
 		diskMgr=hf.diskMgr;
 
+	    curPageId = diskMgr.get_file_entry(hf.heapFileName);  // get the first page ID of the heap file
+
 		System.out.println("HeapScan: loading from file '"+hf.heapFileName+"'");
-		curPageId = hf.firstPageId; // get the first page of this heap file
+
 		System.out.println("HeapScan: start with Page "+curPageId.pid+" from file"+hf.heapFileName);
     }
 

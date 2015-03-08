@@ -216,8 +216,8 @@ public class TestDriver implements GlobalConst{
    * Creates a new database on the disk.
    */
   protected void create_minibase() {
-    System.out.println("Creating database...\nReplacer: " + "Clock");
-    new Minibase(dbpath, DB_SIZE, BUF_SIZE, LAH_SIZE, "Clock", false);
+    System.out.println("Creating database...\nReplacer: " + "LIRS");
+    new Minibase(dbpath, DB_SIZE, BUF_SIZE, LAH_SIZE, "LIRS", false);
   }
 
 

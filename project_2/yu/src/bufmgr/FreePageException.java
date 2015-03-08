@@ -1,4 +1,4 @@
-package diskmgr;
+package bufmgr;
 import chainexception.*;
 
 public class FreePageException extends ChainException {

@@ -128,7 +128,7 @@ public class BufMgr {
 						LIRSresult[i] = -1;
 					}
 					for(int i = 0; i<numbufs; i=i+1){
-						LIRSresult[numbufs] = rep.result(numbufs);
+						LIRSresult[i] = rep.result(i);
 					}
 					index = hasMaxLIRS(LIRSresult);
 					rep.increGlobalOpId();

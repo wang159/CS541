@@ -288,8 +288,8 @@ public class BufMgr {
 				}
 				*/
 				// Remove it from the hash,bufferPool,bufferDescriptor
-				unpinPage(frDescriptor[index].getPageId(),frDescriptor[index].isDirty());
-				frHashTab.DeleteFromDir(globalPageId,index);
+				//unpinPage(frDescriptor[index].getPageId(),frDescriptor[index].isDirty());
+				frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
 				bufPool[index] = null;
 				frDescriptor[index] = new FrameDesc(null,0,false);
 				

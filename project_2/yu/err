@@ -1,0 +1,41 @@
+/usr/bin/javac  -cp .:..:lib/bufmgrAssign.jar -d bin src/*/*.java
+/usr/bin/java  -cp .:..:lib/bufmgrAssign.jar:bin tests.BMTest
+
+Running Buffer Management tests....
+Creating database...
+Replacer: LIRS
+
+  Test 1 does a simple test of normal buffer manager operations:
+  - Allocate a bunch of new pages
+  - Write something on each one
+*** Could not pin new page 100
+bufmgr.BufferPoolExceededException: No unpinned buffer frame.
+	at bufmgr.BufMgr.pinPage(BufMgr.java:154)
+	at tests.BMDriver.test1(BMTest.java:178)
+	at tests.BMDriver.runAllTests(BMTest.java:114)
+	at tests.BMDriver.runTests(BMTest.java:88)
+	at tests.BMTest.main(BMTest.java:640)
+
+  Test 2 exercises some illegal buffer manager operations:
+  - Try to pin more pages than there are frames
+*** Pinning too many pages
+  --> Failed as expected 
+
+  - Try to free a doubly-pinned page
+*** Freeing a pinned page
+  --> Failed as expected 
+
+  - Try to unpin a page not in the buffer pool
+*** Unpinning a page not in the buffer pool
+  --> Failed as expected 
+
+  Test 2 completed successfully.
+
+  Test 3 exercises some of the internals of the buffer manager
+  - Allocate and dirty some new pages, one at a time, and leave some pinned
+Exception in thread "main" java.lang.NullPointerException
+	at tests.BMDriver.test3(BMTest.java:505)
+	at tests.BMDriver.runAllTests(BMTest.java:116)
+	at tests.BMDriver.runTests(BMTest.java:88)
+	at tests.BMTest.main(BMTest.java:640)
+make: *** [xx] Error 1

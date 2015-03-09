@@ -90,7 +90,7 @@ public class BufMgr {
 			int index = -1;
 
 			//System.out.println("item number in the directory: "+ frHashTab.getItemNum());
-			//System.out.println(isFull());
+			System.out.println(isFull());
 			if(!isFull()){				
 				/*
 				System.out.println("emptylist:");
@@ -115,7 +115,7 @@ public class BufMgr {
 				//index = getFirstEmptyFrame();
 				
 				if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
-					flushPage(frDescriptor[index].getPageId());
+					flushPage(new PageId(frDescriptor[index].getPageId().pid));
 					frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
 				}
 				frHashTab.AddToDir(new PageId(pageno.pid), index);
@@ -129,10 +129,13 @@ public class BufMgr {
 					}
 					for(int i = 0; i<numbufs; i=i+1){
 						LIRSresult[i] = rep.result(i);
+						//System.out.print(LIRSresult[i]+",");
 					}
+					//System.out.println();
+
 					index = hasMaxLIRS(LIRSresult);
 					System.out.println("index: "+ index);
-					System.out.println("pageid: "+ frDescriptor[index].getPageId().pid);
+					//System.out.println("pageid: "+ frDescriptor[index].getPageId().pid);
 					rep.increGlobalOpId();
 					rep.setFrameOpId(index);
 					if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
@@ -382,17 +385,14 @@ public class BufMgr {
 	 * @return the index of the largest item
 	 */
 	private int hasMaxLIRS(int[] a){
-		int tmp=0,i;
-		for(i=0;i<a.length;i=i+1)
-			for(int j=i+1 ;j<a.length;j=j+1){
-				if(a[j] > a[i]){
-					tmp = j;
-				}
-				else{
-					tmp = i;
-				}
+		int tmp=a[0],indx=0;
+		for(int i=0;i<a.length;i=i+1){
+			if(a[i]>tmp){
+				tmp = a[i];
+				indx = i;
 			}
-		return tmp;
+		}
+		return indx;
 	}
 
 	

@@ -5,7 +5,7 @@ import global.PageId;
 
 
 public class LIRS {
-	private final int INF = 9999;
+	private final int INF = 99;
 	private int FrNum =0;
 	private static int GlobalOpId;
 	private int[][] frameOpIdPair;

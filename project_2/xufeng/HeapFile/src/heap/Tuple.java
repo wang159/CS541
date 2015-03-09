@@ -23,7 +23,7 @@ public class Tuple {
     }
 
     public Tuple(byte [] tuple_in, int r_start, int r_len) {
-        tuple = Arrays.copyOfRange(tuple_in, r_start, r_start+r_len+1);
+        tuple = Arrays.copyOfRange(tuple_in, r_start, r_start+r_len);
     }
 
     public void setTupleByteArray(byte [] tuple_in) {

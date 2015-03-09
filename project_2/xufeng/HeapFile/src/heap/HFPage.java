@@ -6,6 +6,7 @@ import global.Minibase;
 import global.RID;
 import global.PageId;
 import global.Page;
+import diskmgr.DiskMgr;
 
 import java.util.Arrays;
 import java.io.*;
@@ -39,7 +40,8 @@ public class HFPage extends Page {
     }
 
     public HFPage (Page page) {
-
+		// set this page to another
+		setPage(page);
     }
 
     
@@ -114,30 +116,73 @@ public class HFPage extends Page {
         // Selects a record from the page.
         short recordLength = getSlotLength(rid.slotno);
         short recordOffset = getSlotOffset(rid.slotno);
-        System.out.println(">> selectRecord: page_size = " + PAGE_SIZE +"; recordLength = " + recordLength + "; recordOffset = " + recordOffset + "\n");
+        System.out.println(">> selectRecord: rid.page = "+rid.pageno+"; rid.slotno = "+rid.slotno+"; page_size = " + PAGE_SIZE +"; recordLength = " + recordLength + "; recordOffset = " + recordOffset + "\n");
 
         return Arrays.copyOfRange(getData(),recordOffset,recordOffset+recordLength);
     }
     
     public void updateRecord(RID rid, heap.Tuple record) {
         // Updates a record on the page.
+		// the validity of this update should have been checked by the HeapFile layer
+        short recordLength = getSlotLength(rid.slotno);
+        short recordOffset = getSlotOffset(rid.slotno);
+        System.out.println(">> updateRecord: rid.page = "+rid.pageno+"; rid.slotno = "+rid.slotno+"; page_size = " + PAGE_SIZE +"; recordLength = " + recordLength + "; recordOffset = " + recordOffset + "\n");
+
+		byte[] thisData = getData(); // get current data block
+		byte[] updateByte = record.getTupleByteArray(); // get record byte array to be updated
+
+		for (int index=recordOffset; index<(recordOffset+recordLength); index++) {
+			// replace the record byte by byte
+			thisData[index] = updateByte[index-recordOffset];
+		}
+
+		setData(thisData); // store the updated data back
+
+        return;		
     }
 
     public void deleteRecord(RID rid) {
-        // Deletes a record from the page, compacting the records space.
+        // Deletes a record from the page.
+		// >> parameters
+		// rid: the ID of the record to be deleted.
+		// >> details
+        // In this implementation of the Heap File, deleting a record does not compact the space. 
+		// Instead, the total free space is kept inside the page, and unless all available pages are exhausted
+		// no page compacting operation is executed. Therefore, the delete record operation becomes very simple by
+		// setting the slot record offset to -1.
+
+		if (rid.slotno < getSlotCount()) {
+			// the requested record slot is found
+        	short rmSlotPOS = (short)(TOTAL_OFFSET + rid.slotno*SLOT_SIZE); // slot head position
+
+        	// set to -1
+        	setShortValue((short)-1, rmSlotPOS);
+		} else {
+			// there is no such slot
+
+		}
     }
 
     public RID firstRecord() {
         // Gets the RID of the first record on the page, or null if none.
         RID firstRid = new RID();
+		firstRid.pageno = getCurPage();
 
-        if (getSlotCount() > 0) {
-            // there are records
-            firstRid.pageno = getCurPage();
-            firstRid.slotno = 0; // first record slot number is always zero
-        } else {
-            firstRid = null;
-        }
+		int nextSlotNo = 0; // first slot number
+
+		while (nextSlotNo < getSlotCount() && getSlotOffset(nextSlotNo) == -1) {
+			// seek next non-removed record
+			nextSlotNo++;
+		}
+
+
+		if (nextSlotNo >= getSlotCount()) {
+			// next record does not exist
+			firstRid = null;
+		} else {
+			// next record is found
+			firstRid.slotno = nextSlotNo;
+		}
 
         return firstRid;
     }
@@ -146,11 +191,18 @@ public class HFPage extends Page {
         // Gets the next RID after the given one, or null if no more.
 		int nextSlotNo = curRid.slotno+1; // next slot number
 
-		if (nextSlotNo < getSlotCount()) {
-			// there are record
-			curRid.slotno = curRid.slotno+1;
-	    } else {
+		while (nextSlotNo < getSlotCount() && getSlotOffset(nextSlotNo) == -1) {
+			// seek next non-removed record
+			nextSlotNo++;
+		}
+
+
+		if (nextSlotNo >= getSlotCount()) {
+			// next record does not exist
 			curRid = null;
+		} else {
+			// next record is found
+			curRid.slotno = nextSlotNo;
 		}
 
         return curRid;
@@ -158,7 +210,7 @@ public class HFPage extends Page {
 
     boolean hasNext(RID curRid) {
         // Returns true if the iteration has more elements.
-                return true;
+        return true;
     }
 
     ////////////////////////////
@@ -202,19 +254,20 @@ public class HFPage extends Page {
 
     PageId getCurPage() {
         // Gets the current page's id.
-        PageId pageId = new PageId();
-        pageId.pid = getIntValue(0);
+        PageId pageId = new PageId(getIntValue(THISID_OFFSET));
         return pageId;
     }
     
     PageId getPrevPage() {
         // Gets the previous page's id.
-        return null;
+        PageId pageId = new PageId(getIntValue(PREVID_OFFSET));
+        return pageId;
     }
 
     PageId getNextPage() {
         // Gets the next page's id.
-        return null;
+        PageId pageId = new PageId(getIntValue(NEXTID_OFFSET));
+        return pageId;
     }
      
     short getType() {
@@ -224,6 +277,9 @@ public class HFPage extends Page {
   
     short getSlotCount() {
         // Gets the number of slots on the page.
+		// >> details
+		// Notice that this number is less or equal to the amount of records, since some records
+		// may have been removed, resulting in a slot but with -1 offset.
         return getShortValue(SLOTCNT_OFFSET);
     }
     

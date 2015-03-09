@@ -15,7 +15,6 @@ public class BufMgr {
 	private int numbufs;
 	private FrameHashTable frHashTab;
 	private LIRS rep;
-	private LinkedList<Integer> emptylist;
 
 	/**
 	* Create the BufMgr object.
@@ -35,10 +34,8 @@ public class BufMgr {
 		frHashTab = new FrameHashTable(29);
 		if (replacerArg.charAt(0) == 'L') {//LIRS replacement policy
 			rep = new LIRS(numbufs);
-			emptylist = new LinkedList<Integer>();
 			for(int i = 0;i<numbufs;i=i+1){
 				frDescriptor[i] = new FrameDesc(null,0,false);
-				emptylist.add(i);
 			}
 		} 
 		else {// for test only
@@ -75,28 +72,26 @@ public class BufMgr {
 		if(fp!=null) // The page is already in the buffer pool
 		{			
 			int index = fp.getFrame();
-			if(frDescriptor[index].getPinCount() == 0)
-				//queue.remove(index);
-				emptylist.remove((Integer)index);
-			// If it is, increment the pin_count and return a pointer to this
-			// page.
-			frDescriptor[index].IncrePinCount();
+			//System.out.println("index: "+index);
 			page.setpage(bufPool[index]);
 			rep.increGlobalOpId();
 			rep.setFrameOpId(index);
 			if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
 				flushPage(frDescriptor[index].getPageId());
 			}
+			
+			frDescriptor[index].setPageId(new PageId(pageno.pid));
+			frDescriptor[index].IncrePinCount();
+
 		}
 		// If the page is not in the pool,
 		else 
 		{
 			int index = -1;
-			//if (queue.size() != 0){ 
-			if(!isFull()){
 
-				index = emptylist.get(0);
-				emptylist.remove(0);
+			//System.out.println("item number in the directory: "+ frHashTab.getItemNum());
+			//System.out.println(isFull());
+			if(!isFull()){				
 				/*
 				System.out.println("emptylist:");
 				for(int i = 0; i< emptylist.size();i++){
@@ -104,20 +99,29 @@ public class BufMgr {
 				}
 				System.out.println();
 				*/
+				for(int i = 0; i < numbufs; i++){
+					if(frDescriptor[i].getPageId()==null){
+						index = i;
+						break;
+					}
+				}
+				
+				//System.out.println("index: "+ index);
+				
 				rep.increGlobalOpId();
 				rep.setFrameOpId(index);
+				frDescriptor[index] = new FrameDesc(new PageId(pageno.pid),1, false);
+				
 				//index = getFirstEmptyFrame();
 				
 				if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
-					
 					flushPage(frDescriptor[index].getPageId());
-
 					frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
 				}
-				frDescriptor[index] = new FrameDesc(new PageId(pageno.pid),1, false);
-
+				frHashTab.AddToDir(new PageId(pageno.pid), index);
 			} 
 			else{
+				
 				if(getNumUnpinned()!=0){
 					int[] LIRSresult = new int[numbufs];
 					for(int i = 0; i<numbufs; i=i+1){
@@ -132,10 +136,10 @@ public class BufMgr {
 					if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
 						
 						flushPage(frDescriptor[index].getPageId());
-						//directory.remove(bufDescr[index].getPageNumber().pid);
-						frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
+						//frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
 					}
 					frDescriptor[index] = new FrameDesc(new PageId(pageno.pid),1, false);
+					frHashTab.AddToDir(new PageId(pageno.pid), index);
 				}
 				else{
 					throw new BufferPoolExceededException(null,"No unpinned buffer frame.");
@@ -149,14 +153,10 @@ public class BufMgr {
 			} catch (Exception e) {
 				throw new DiskMgrException(e, "Unable to read a page.");
 			}
-			// and pin it.
-			//bufPool[index] = new Page();
-			//bufPool[index].setpage((temp.getpage().clone()));
+
 			bufPool[index]=temp.getpage();
-			page.setpage(bufPool[index]);
-			
-			//directory.put(pageno.pid, index);
-			frHashTab.AddToDir(pageno, index);
+			page.setpage(bufPool[index]);		
+			//page = temp;
 		}
 	}
 
@@ -176,8 +176,7 @@ public class BufMgr {
 	* @param pageno page number in the Minibase.
 	* @param dirty the dirty bit of the frame
 	*/
-	public void unpinPage(PageId pageno, boolean dirty)
-			throws ChainException {
+	public void unpinPage(PageId pageno, boolean dirty) throws ChainException {
 		FPpair fp = new FPpair();
 		//System.out.println("Unpinning a page.");
 		fp = frHashTab.getPair(pageno);
@@ -186,7 +185,7 @@ public class BufMgr {
 			int index = fp.getFrame();
 			//System.out.println("pageid: "+ pageno.pid);
 			//System.out.println("unpinning frameid: "+ index);
-			//System.out.println("pin count: "+bufDescr[index].getPin_count());			
+			//System.out.println("pin count: "+frDescriptor[index].getPin_count());			
 			
 			if(frDescriptor[index].getPinCount() == 0){
 				throw new PageUnpinnedException(null, "Trying to unpin a page that is already unpinned.");
@@ -194,18 +193,23 @@ public class BufMgr {
 			else
 			{
 				// Set the dirty bit for this frame.
-				frDescriptor[index].SetDirtyBit(dirty);
+				if(dirty == true){
+					frDescriptor[index].SetDirtyBit(dirty);
+				}
 				// Further, if pin_count>0, this method should decrement it
+				
 				frDescriptor[index].DecrePinCount();
-				if (frDescriptor[index].getPinCount() == 0){
-					//queue.add(index);
-					emptylist.add(index);
-					//frHashTab.DeleteFromDir(pageno, index);
+				System.out.println("index: "+ index);
+				System.out.println("pin count: "+ frDescriptor[index].getPinCount());
+				if(frDescriptor[index].getPinCount() == 0){
+					frDescriptor[index].setPageId(null);
+					frHashTab.DeleteFromDir(new PageId(pageno.pid), index);
 				}
 			}
 		}
-		else
+		else{
 			throw new HashEntryNotFoundException(null, "Entry was not found in the directory.");
+		}
 	}
 
 	/**
@@ -230,17 +234,11 @@ public class BufMgr {
  
 		try {
 			// Call DB object to allocate a run of new pages
-			Minibase.DiskManager.allocate_page(id, howmany);
+			id = Minibase.DiskManager.allocate_page(howmany);
 		} catch (Exception e) {
 			throw new DiskMgrException(e, "Unable to allocate " + howmany + " pages.");
 		}
-		/*
-		 * If buffer is full, i.e., you cant find a frame for the first page,
-		 * ask DB to deallocate all these pages, and return null.
-		 */
-		/*
-		 * find a frame in the buffer pool for the first page and pin it
-		*/
+
 		pinPage(id, firstpage, false);
 		return id;
 
@@ -274,29 +272,22 @@ public class BufMgr {
 				//Not sure from this condition :S :S 
 				//if (frDescriptor[i].getPinCount() == 1)
 					//unpinPage(frDescriptor[i].getPageId(),frDescriptor[i].isDirty());
+				/*
 				// If it is dirty flush it
 				if(frDescriptor[index].isDirty())
 					try {
 						flushPage(globalPageId);
 					} catch (Exception e) {
 						throw new FreePageException(null, "Unable to flush a page.");
-					}
+				}
+				*/
 				// Remove it from the hash,bufferPool,bufferDescriptor
+				unpinPage(frDescriptor[index].getPageId(),frDescriptor[index].isDirty());
 				frHashTab.DeleteFromDir(globalPageId,index);
 				bufPool[index] = null;
-				//frDescriptor[i] = null;
-				int addflag = 1;
-				for(int i = 0; i <emptylist.size();i = i+1){
-					if(emptylist.get(i) == index){
-						addflag = 0;
-					}
-				}
-				if(addflag == 1){
-					emptylist.add((Integer)index);
-				}
+				frDescriptor[index] = new FrameDesc(null,0,false);
 				
-				Minibase.DiskManager.deallocate_page(new PageId(
-						globalPageId.pid));
+				Minibase.DiskManager.deallocate_page(new PageId(globalPageId.pid));
 			} catch (Exception e) {
 				throw new PagePinnedException(e, "Unable to deallocate pages.");
 			}
@@ -324,7 +315,7 @@ public class BufMgr {
 		;
 		try {
 			if (apage != null) {
-				Minibase.DiskManager.write_page(pageid, apage);
+				Minibase.DiskManager.write_page(new PageId(pageid.pid), apage);
 				frDescriptor[i].SetDirtyBit(false);
 			} else
 				throw new HashEntryNotFoundException(null, "Entry was not found in the directory.");
@@ -359,14 +350,13 @@ public class BufMgr {
 			}
 		}
 		return count;
-	
 		//return queue.size();
 	}
 	/*
 	 * Check whether the buffer is full or not !
 	 */
 	public boolean isFull() {
-		return emptylist.size()==0?true:false;
+		return frHashTab.getItemNum()>=numbufs?true:false;
 		//return queue.size()==0?true:false;
 	}
 	/*

@@ -19,7 +19,10 @@ public class LIRSReplace {
     
     public LIRSReplace(int numBufs) {
         _numBufs = numBufs;
-        
+        //System.out.print("size of buffer is"+_numBufs+"\n");
+        //_ReuseDistance = new ArrayList(100);
+        //_ReuseDistance.set(0, 33);
+        //System.out.print("size of array is"+_ReuseDistance.size()+"\n");
     }
     public void addToList(int FrameID)
     {
@@ -49,6 +52,7 @@ public class LIRSReplace {
             for(int ii=0;ii<_numBufs;ii++)
             {
                 //choose the frame with highest LIRS weight
+                //System.out.print(" frame "+ii+ "recency"+_Recency.get(ii)+"reuse "+_ReuseDistance.get(ii)+"\n");
                 int _this_Rencency = (int)_Recency.get(ii);
                 int _this_ReuseDistance = (int)_ReuseDistance.get(ii);
                 if ( _this_ReuseDistance <= _this_Rencency ) 
@@ -72,12 +76,13 @@ public class LIRSReplace {
     {
         //Assume FrameID starts from 1 to _numBufs
 
-        for(int ii=1; ii<_numBufs; ii++)
+        for(int ii=0; ii<_numBufs; ii++)
         {
-            _ReuseDistance.set(ii,-1);
-            _Recency.set(ii,0);
-            _numPins.set(ii,0);
-            _replaceFrameList.add(ii); 
+            //System.out.print(_ReuseDistance.size());
+            _ReuseDistance.add(ii,-1);
+            _Recency.add(ii,0);
+            _numPins.add(ii,0);
+            _replaceFrameList.add(ii,ii); 
         //Frame will be added to replacement from begining
         }
     }
@@ -96,6 +101,8 @@ public class LIRSReplace {
         //when a Frame is called, the recency number become reusedistance, and the recency number for this frame is set to be zero
         int _this_numPins = (int) _numPins.get(FrameID);
         _this_numPins++;
+        _numPins.set(FrameID,_this_numPins);
+        //System.out.print("Frame is "+FrameID+" pin count is "+_this_numPins+"\n");
         if(_this_numPins>1) _ReuseDistance.set(FrameID,_Recency.get(FrameID));
         _Recency.set(FrameID,0);
         if(_this_numPins==1) _replaceFrameList.add(FrameID); 

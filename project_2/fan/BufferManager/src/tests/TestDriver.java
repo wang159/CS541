@@ -65,8 +65,8 @@ public class TestDriver implements GlobalConst{
     //To port it to a different platform, get "user.name" should
     //still work well because this feature is not meant to be UNIX
     //dependent. 
-    dbpath = "/tmp/"+nameRoot+System.getProperty("user.name")+".minibase-db"; 
-    logpath = "/tmp/"+nameRoot +System.getProperty("user.name")+".minibase-log"; 
+    dbpath = "C:\\study\\database\\project2\\BufferManager\\src\\tests.minibase-db"; 
+    logpath = "C:\\study\\database\\project2\\BufferManager\\src\\tests.minibase-log"; 
   }
 
   /**
@@ -216,8 +216,8 @@ public class TestDriver implements GlobalConst{
    * Creates a new database on the disk.
    */
   protected void create_minibase() {
-    System.out.println("Creating database...\nReplacer: " + "LRU_Look_ahead");
-    new Minibase(dbpath, DB_SIZE, BUF_SIZE, LAH_SIZE, "LRU_Look_ahead", false);
+    System.out.println("Creating database...\nReplacer: " + "LIRS");
+      Minibase minibase = new Minibase(dbpath, DB_SIZE, BUF_SIZE, LAH_SIZE, "LIRS", false);
   }
 
 

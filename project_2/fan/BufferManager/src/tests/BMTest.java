@@ -146,7 +146,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		try {
 			firstPid = Minibase.BufferManager.newPage( pg, numPages );
-		}
+		}                
 		catch (Exception e) {   
 			System.err.print("*** Could not allocate " + numPages);
 			System.err.print (" new pages in the database.\n");
@@ -154,10 +154,9 @@ class BMDriver extends TestDriver implements GlobalConst {
 			return false;
 		}
 
-
 		// Unpin that first page... to simplify our loop.
 		try {
-			Minibase.BufferManager.unpinPage(firstPid, false /*not dirty*/);
+			//Minibase.BufferManager.unpinPage(firstPid, false /*not dirty*/);
 		}
 		catch (Exception e) {
 			System.err.print("*** Could not unpin the first new page.\n");
@@ -169,13 +168,13 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		pid = new PageId();
 		lastPid = new PageId();
-
 		for ( pid.pid = firstPid.pid, lastPid.pid = pid.pid+numPages; 
 		status == OK && pid.pid < lastPid.pid; 
 		pid.pid = pid.pid + 1 ) {
 
 			try {
 				Minibase.BufferManager.pinPage( pid, pg, /*emptyPage:*/ false);
+                                
 			}
 			catch (Exception e) { 
 				status = FAIL;
@@ -235,6 +234,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 				try {
 					data = Convert.getIntValue (0, pg.getpage());
+                                        //System.err.print ("page value is "+ data+"\n");
 				}
 				catch (IOException e) {
 					System.err.print ("*** Convert value failed \n");
@@ -244,6 +244,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 				if (status == OK) {
 					if (data != (pid.pid) + 99999) {
 						status = FAIL;
+
 						System.err.print ("*** Read wrong data back from page " 
 								+ pid.pid + "\n");
 					}
@@ -252,6 +253,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 				if (status == OK) {
 					try {
 						Minibase.BufferManager.unpinPage( pid, /*dirty:*/ true );
+                                                //System.err.print ("page id is "+ pid.pid+"\n");
 					}
 					catch (Exception e)  { 
 						status = FAIL;
@@ -269,6 +271,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		pid.pid = pid.pid + 1) {
 
 			try {
+                                //System.err.print ("page id is "+ pid.pid+"\n");
 				Minibase.BufferManager.freePage( pid ); 
 			}
 			catch (Exception e) {
@@ -283,11 +286,12 @@ class BMDriver extends TestDriver implements GlobalConst {
 			System.out.print("  Test 1 completed successfully.\n");
 
 		return status;
+                
 	}
 
 
 	/**
-	 * overrides the test2 function in TestDriver.  It tests whether illeagal
+	 * overrides the test2 function in TestDriver.  It tests whether illegal
 	 * operation can be caught.
 	 *
 	 * @return whether test2 has passed
@@ -299,12 +303,12 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		// We choose this number to ensure that pinning this number of buffers
 		// should fail.
+                
 		int numPages = Minibase.BufferManager.getNumUnpinned() + 1;
 		Page pg = new Page ();
 		PageId pid, lastPid;
 		PageId firstPid = new PageId();
 		boolean status = OK;
-
 		System.out.print("  - Try to pin more pages than there are frames\n");
 		try {
 			firstPid = Minibase.BufferManager.newPage( pg, numPages );
@@ -342,7 +346,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 					+ " available frames,\n" +
 			"    but it should have none.\n");
 		}
-
+//Minibase.BufferManager.testBufFull();
 		// Now pin that last page, and make sure it fails.
 		if ( status == OK ) {
 			try {
@@ -505,6 +509,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 				try {
 					Convert.setIntValue (data, 0, pg.getpage());
+                                        //System.err.print("page id "+ pid.pid +" page value "+data+"\n");
 				}
 				catch (IOException e) {
 					System.err.print ("*** Convert value failed\n");
@@ -518,6 +523,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 					if ( pid.pid % 20 != 12 ) {
 						try {
 							Minibase.BufferManager.unpinPage( pid, /*dirty:*/ true );
+                                                        //System.err.print("page id "+ pid.pid +" page value "+data+"\n");
 						}
 						catch (Exception e) { 
 							status = FAIL;
@@ -527,6 +533,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 				}
 			}
 		}
+                //Minibase.BufferManager.testBufFull();
 
 		if ( status == OK ) {
 			System.out.print ("  - Read the pages\n");
@@ -548,6 +555,8 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 					try {
 						data = Convert.getIntValue (0, pg.getpage());
+                                                
+                                                
 					}
 					catch (IOException e) {
 						System.err.print ("*** Convert value failed \n");
@@ -556,7 +565,8 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 					if ( data != pid.pid + 99999 ) {
 						status = FAIL;
-						System.err.print("*** Read wrong data back from page "+pid.pid+"\n");
+                                                System.err.print("page value "+data+"\n");
+						System.err.print("*** Read that something back from each one "+pid.pid+"\n");
 					}
 				}
 

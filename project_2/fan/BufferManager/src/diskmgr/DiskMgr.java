@@ -82,10 +82,10 @@ public class DiskMgr implements GlobalConst {
     File DBfile = new File(name);
     
     DBfile.delete();
-    
+    System.out.print("fname is"+fname+"\n");    
     // Creaat a random access file
     fp = new RandomAccessFile(fname, "rw");
-    
+
     // Make the file num_pages pages long, filled with zeroes.
     fp.seek((long)(num_pages * PAGE_SIZE-1));
     fp.writeByte(0);
@@ -197,10 +197,13 @@ public class DiskMgr implements GlobalConst {
    * @return The new page's id
  * @throws IOException 
  * @throws ChainException 
+     * @throws bufmgr.PageUnpinnedException 
+     * @throws diskmgr.InvalidPageNumberException 
+     * @throws diskmgr.FileIOException 
  * @throws IllegalArgumentException if run_size is invalid
    * @throws IllegalStateException if the database is full
    */
-  public PageId allocate_page(int run_size) throws ChainException, IOException, PageUnpinnedException{
+  public PageId allocate_page(int run_size) throws ChainException, IOException, PageUnpinnedException, InvalidPageNumberException, FileIOException, BufferPoolExceededException, HashEntryNotFoundException{
 
     // validate the run size
     if ((run_size < 1) || (run_size > num_pages)) {

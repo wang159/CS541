@@ -131,11 +131,13 @@ public class BufMgr {
 						LIRSresult[i] = rep.result(i);
 					}
 					index = hasMaxLIRS(LIRSresult);
+					System.out.println("index: "+ index);
+					System.out.println("pageid: "+ frDescriptor[index].getPageId().pid);
 					rep.increGlobalOpId();
 					rep.setFrameOpId(index);
 					if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
 						
-						flushPage(frDescriptor[index].getPageId());
+						flushPage(new PageId(frDescriptor[index].getPageId().pid));
 						//frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
 					}
 					frDescriptor[index] = new FrameDesc(new PageId(pageno.pid),1, false);
@@ -199,12 +201,12 @@ public class BufMgr {
 				// Further, if pin_count>0, this method should decrement it
 				
 				frDescriptor[index].DecrePinCount();
-				System.out.println("index: "+ index);
-				System.out.println("pin count: "+ frDescriptor[index].getPinCount());
-				if(frDescriptor[index].getPinCount() == 0){
-					frDescriptor[index].setPageId(null);
-					frHashTab.DeleteFromDir(new PageId(pageno.pid), index);
-				}
+				//System.out.println("index: "+ index);
+				//System.out.println("pin count: "+ frDescriptor[index].getPinCount());
+				//if(frDescriptor[index].getPinCount() == 0){
+					//frDescriptor[index].setPageId(null);
+					//frHashTab.DeleteFromDir(new PageId(pageno.pid), index);
+				//}
 			}
 		}
 		else{
@@ -310,9 +312,8 @@ public class BufMgr {
 		Page apage = null;
 		FPpair fp = frHashTab.getPair(pageid); 
 		int i = fp.getFrame();
-		if(frDescriptor[i]!=null)
-			apage = new Page(bufPool[i]);
-		;
+		if(frDescriptor[i]!=null) apage = new Page(bufPool[i]);
+
 		try {
 			if (apage != null) {
 				Minibase.DiskManager.write_page(new PageId(pageid.pid), apage);
@@ -356,7 +357,12 @@ public class BufMgr {
 	 * Check whether the buffer is full or not !
 	 */
 	public boolean isFull() {
-		return frHashTab.getItemNum()>=numbufs?true:false;
+		for(int i = 0; i< numbufs; i=i+1){
+			if(frDescriptor[i].getPageId()==null){
+				return false;
+			}
+		}
+		return true;
 		//return queue.size()==0?true:false;
 	}
 	/*

@@ -111,7 +111,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		//The following runs all the test functions 
 
 		//Running test1() to test6()
-		//if (!test1()) { _passAll = FAIL; } 
+		if (!test1()) { _passAll = FAIL; } 
 		if (!test2()) { _passAll = FAIL; }
 		if (!test3()) { _passAll = FAIL; }
 		//if (!test4()) { _passAll = FAIL; }
@@ -235,6 +235,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 				try {
 					data = Convert.getIntValue (0, pg.getpage());
+					//System.out.println("data: "+ data);
 				}
 				catch (IOException e) {
 					System.err.print ("*** Convert value failed \n");

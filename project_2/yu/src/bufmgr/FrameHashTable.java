@@ -10,23 +10,26 @@ import global.PageId;
 class bucket {
 
 	private Vector<FPpair> buc;
+	private int numitem;
 	public bucket(){
 		buc = new Vector<FPpair>();
+		numitem = 0;
 	}
 	public bucket(int dirsize){
 		buc = new Vector<FPpair>(dirsize); 
+		numitem = 0;
 	}
 	public void Add(FPpair newpair){
 		int addflag=0;
 		for(int i = 0; i<buc.size(); i = i + 1){
 			if(buc.get(i).getPage()==newpair.getPage() && buc.get(i).getFrame()==newpair.getFrame()){
-				System.out.println("I'm here");
+				//System.out.println("I'm here");
 				addflag=1;//throw new DuplicateEntryException(null,"Page exists in the buffer.");
 			}
 		}
 		if(addflag==0){
-			
 			buc.add(newpair);
+			numitem = numitem +1;
 		}
 	}
 	public void Delete(FPpair newpair){
@@ -34,6 +37,8 @@ class bucket {
 			if(buc.get(i).getPage()==newpair.getPage() && buc.get(i).getFrame()==newpair.getFrame()){
 				//System.out.println("I'm here. page is " + buc.get(i).getPage());
 				buc.remove(i);
+				numitem = numitem - 1;
+				break;
 			}
 			
 		}
@@ -48,6 +53,9 @@ class bucket {
       		        }
   		}
 		return null;
+	}
+	public int itnum(){
+		return numitem;
 	}
 
 }
@@ -87,7 +95,14 @@ public class FrameHashTable {
 	//System.out.println(bucketid);
     	return dir[bucketid].getpair(pageid.pid);
     }
- 
+    
+    public int getItemNum(){
+    	int count = 0;
+    	for(int i = 0;i < HTSIZE; i = i+1){
+    		count = count + dir[i].itnum();
+    	}
+    	return count;
+    }
     
     public int HashFunction(int value){
     	return (5*value+10)%HTSIZE;

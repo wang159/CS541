@@ -77,9 +77,10 @@ public class BufMgr {
 			rep.increGlobalOpId();
 			rep.setFrameOpId(index);
 			if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
-				flushPage(frDescriptor[index].getPageId());
+				flushPage(new PageId(frDescriptor[index].getPageId().pid));
+				frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
 			}
-			
+			frHashTab.AddToDir(new PageId(pageno.pid), index);
 			frDescriptor[index].setPageId(new PageId(pageno.pid));
 			frDescriptor[index].IncrePinCount();
 
@@ -90,7 +91,7 @@ public class BufMgr {
 			int index = -1;
 
 			//System.out.println("item number in the directory: "+ frHashTab.getItemNum());
-			System.out.println(isFull());
+			//System.out.println(isFull());
 			if(!isFull()){				
 				/*
 				System.out.println("emptylist:");
@@ -134,14 +135,14 @@ public class BufMgr {
 					//System.out.println();
 
 					index = hasMaxLIRS(LIRSresult);
-					System.out.println("index: "+ index);
+					//System.out.println("index: "+ index);
 					//System.out.println("pageid: "+ frDescriptor[index].getPageId().pid);
 					rep.increGlobalOpId();
 					rep.setFrameOpId(index);
 					if ((frDescriptor[index]!= null) && frDescriptor[index].isDirty()) {
 						
 						flushPage(new PageId(frDescriptor[index].getPageId().pid));
-						//frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
+						frHashTab.DeleteFromDir(frDescriptor[index].getPageId(),index);
 					}
 					frDescriptor[index] = new FrameDesc(new PageId(pageno.pid),1, false);
 					frHashTab.AddToDir(new PageId(pageno.pid), index);

@@ -235,7 +235,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 				try {
 					data = Convert.getIntValue (0, pg.getpage());
-					System.out.println("data: "+ data);
+					//System.out.println("data: "+ data);
 				}
 				catch (IOException e) {
 					System.err.print ("*** Convert value failed \n");

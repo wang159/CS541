@@ -58,9 +58,12 @@ public class HeapFile {
 
 		HFPage thisDirPage = new HFPage();
 		System.out.println("deleteRecord: page = "+rid.pageno+";slot = "+rid.slotno);
+
+		Minibase.BufferManager.pinPage(rid.pageno, thisDirPage, false); // pin the first page
 		diskMgr.read_page(rid.pageno, thisDirPage);  // read directory page from disk
 		thisDirPage.deleteRecord(rid);  			 // add pageId(int) to the record
 		diskMgr.write_page(rid.pageno, thisDirPage); // write directory page to disk
+		Minibase.BufferManager.unpinPage(rid.pageno, true); // unpin previous first page
 
 		return true;
     }
@@ -71,18 +74,24 @@ public class HeapFile {
         return thisTuple;
     }
 
-    public RID insertRecord(byte[] record) throws InvalidUpdateException {
+    public RID insertRecord(byte[] record) throws SpaceNotAvailableException {
         // Inserts a new record into the page.
-        
+        if (record.length > GlobalConst.MAX_TUPSIZE) {
+			throw new SpaceNotAvailableException("Record size exceeds MAX_TUPLE_SIZE");
+		}
+
         // find a page to insert to
         PageId insertToPageId = locateInsertPageId(record.length, HFPage.SLOT_SIZE, curDirPageId);
 
         // insert a record
 		HFPage thisPage = new HFPage();
+
+		Minibase.BufferManager.pinPage(insertToPageId, thisPage, false); // pin page
 		diskMgr.read_page(insertToPageId, thisPage);  // read directory page from disk
 		RID thisRID = thisPage.insertRecord(record);  // add pageId(int) to the record
 		diskMgr.write_page(insertToPageId, thisPage); // write directory page to disk
-
+		Minibase.BufferManager.unpinPage(insertToPageId, true); // unpin page
+		
         return thisRID;
     }
     
@@ -145,11 +154,14 @@ public class HeapFile {
 			if (curTuple.getLength() == record.getLength()) {
 				// the two records are of same length
 				HFPage thisDirPage = new HFPage();
+
+				Minibase.BufferManager.pinPage(rid.pageno, thisDirPage, false); // pin page				
 				diskMgr.read_page(rid.pageno, thisDirPage);  // read directory page from disk
-				System.out.print("updated record from "+record);
 				thisDirPage.updateRecord(rid, record);           // add pageId(int) to the record
-				System.out.print("to "+record+"\n");
-				diskMgr.write_page(rid.pageno, thisDirPage); // write directory page to disk				
+				diskMgr.write_page(rid.pageno, thisDirPage); // write directory page to disk
+				Minibase.BufferManager.unpinPage(rid.pageno, true); // unpin page				
+			} else {
+				throw new InvalidUpdateException();
 			}
 		}
 		

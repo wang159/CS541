@@ -289,7 +289,7 @@ public class BufMgr {
 				try {
 					flushPage(new PageId(frDescriptor[index].getPageId().pid));//
 				} catch (Exception e) {
-					throw new FreePageException(null, "Unable to flush a page.");
+					throw new ChainException(null, "Unable to flush a page.");
 				}
 			}
 			// Remove it from the hash,bufferPool,bufferDescriptor
@@ -328,13 +328,17 @@ public class BufMgr {
 	public void flushPage(PageId pageid) throws ChainException {
 		Page apage = new Page();
 		FPpair fp = frHashTab.getPair(pageid); 
-		int index = fp.getFrame();
-		apage.setpage(bufPool[index]);
-		try {
-			Minibase.DiskManager.write_page(pageid, apage);
-			frDescriptor[index].SetDirtyBit(false);
-		} catch (Exception e) {
-			throw new DiskMgrException(e, "Unable to flush a page.");
+		if(fp != null){
+			int index = fp.getFrame();
+			apage.setpage(bufPool[index]);
+			try {
+				Minibase.DiskManager.write_page(pageid, apage);
+				frDescriptor[index].SetDirtyBit(false);
+			} catch (Exception e) {
+				throw new DiskMgrException(e, "Unable to flush a page.");
+			}
+		}else{
+			throw new HashEntryNotFoundException(null,"Hash entry not found.");
 		}
 	}
 	/**

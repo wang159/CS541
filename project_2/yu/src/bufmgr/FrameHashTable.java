@@ -20,7 +20,7 @@ class bucket {
 		int addflag=0;
 		for(int i = 0; i<buc.size(); i = i + 1){
 			if(buc.get(i).getPage()==newpair.getPage() && buc.get(i).getFrame()==newpair.getFrame()){
-				System.out.println("I'm here");
+//				System.out.println("I'm here");
 				addflag=1;//throw new DuplicateEntryException(null,"Page exists in the buffer.");
 			}
 		}

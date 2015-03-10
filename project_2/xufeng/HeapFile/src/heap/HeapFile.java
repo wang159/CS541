@@ -97,6 +97,8 @@ public class HeapFile {
     
     PageId locateInsertPageId(int rSize, int sSize, PageId dirPageId) {
         // locate a suitable page to insert this record on this directory page
+		// If no page in current directory is large enough, a new record page will be created
+		// If a new directory page is needed, the new record page creation will take care of it
 		// >> Parameters:
 		// rSize = record size; 
 		// sSize = slot info size; 
@@ -109,23 +111,25 @@ public class HeapFile {
         // Search this directory page
         HFPage thisPage = readPage(dirPageId.pid);  // read directory page from disk
 		short slotCnt = thisPage.getSlotCount();
-        System.out.println(">> locateInsertPageId: in directory page pid = " + thisPage.getCurPage().pid + ", " + slotCnt + " slot(s) found!");
+        //System.out.println(">> locateInsertPageId: in directory page pid = " + thisPage.getCurPage().pid + ", " + slotCnt + " slot(s) found!");
 
-        for (int sIndex = 0; sIndex < slotCnt; sIndex++) {
+        for (int sIndex = (slotCnt-1); sIndex >= 0; sIndex--) {
             // for each slot in this directory page
             RID thisRID = new RID();
             thisRID.pageno = thisPage.getCurPage();
             thisRID.slotno = sIndex;
-            System.out.println(">> locateInsertPageId: pageno = " + thisRID.pageno + "; slotno = " + thisRID.slotno +"\n");            
+            //System.out.println(">> locateInsertPageId: pageno = " + thisRID.pageno + "; slotno = " + thisRID.slotno +"\n");            
             byte[] thisRecord = thisPage.selectRecord(thisRID);
             int pid = getPid(thisRecord);
-            System.out.println(">> locateInsertPageId: pid = " + pid + "\n");            
-            System.out.println(">> locateInsertPageId: freeBytes = " + readPage(pid).getFreeSpace() + "; contFreeBytes = " + readPage(pid).getContFreeSpace() + "; totalSize = " + totalSize + "\n");
+            //System.out.println(">> locateInsertPageId: pid = " + pid + "\n");            
+            //System.out.println(">> locateInsertPageId: freeBytes = " + readPage(pid).getFreeSpace() + "; contFreeBytes = " + readPage(pid).getContFreeSpace() + "; totalSize = " + totalSize + "\n");
             if (totalSize <= readPage(pid).getFreeSpace()) {
                 // this page can host this record
                 if (totalSize <= readPage(pid).getContFreeSpace()) {
                     // and the continous free block is large enough
                     insertToPageId.pid = pid;
+					System.out.println(">> locateInsertPageId: pageno = " + thisRID.pageno + "; slotno = " + thisRID.slotno +"\n");
+					break; // breakaway since the page has been found
                 } else {
                     // but the continous free block is not large enough
                 }
@@ -223,7 +227,7 @@ public class HeapFile {
 		latestPageId = recPageId;			    // update latest page ID
 
         // add to directory page
-        addToDirPage(recPage);
+        addToDirPage(recPage); // if directory page is full, a new directory will be created here
 
         return recPageId;
     }
@@ -243,7 +247,7 @@ public class HeapFile {
 		dirPage.setNextPage(new PageId(-1));    // initialize next page ID
         curDirPageId = dirPageId;               // set to current page list
 
-		// update previous page
+		// update previous and next page
 		if (latestPageId != null) {
 			dirPage.setPrevPage(latestPageId);
 
@@ -261,11 +265,16 @@ public class HeapFile {
 
     void addToDirPage(HFPage recPage) {
         // add record page to directory page
+        byte [] pidByte = new byte[HFPage.INT_FIELD_SIZE];
         
         // see if the directory page has enough space
-        
+        if ((HFPage.SLOT_SIZE+pidByte.length) > readPage(curDirPageId.pid).getFreeSpace()) {
+        	// if the directory is full  
+			System.out.println(">> New directory is created.");
+			curDirPageId = createDirPage();
+		}
+     
         // insert record page info into curDirPage
-        byte [] pidByte = new byte[HFPage.INT_FIELD_SIZE];
         Convert.setIntValue(recPage.getCurPage().pid, 0, pidByte);
         System.out.println("addToDirPage: record pid = " + recPage.getCurPage().pid +"\n");
 

@@ -267,6 +267,7 @@ public class HFPage extends Page {
     PageId getNextPage() {
         // Gets the next page's id.
         PageId pageId = new PageId(getIntValue(NEXTID_OFFSET));
+		System.out.println("next pageID = "+pageId);
         return pageId;
     }
      

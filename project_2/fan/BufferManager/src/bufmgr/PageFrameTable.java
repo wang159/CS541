@@ -16,11 +16,13 @@ import java.util.ArrayList;
  */
 public class PageFrameTable {    
     ArrayList[] _PageFrameTable = null;
+    int bufNum = 0;
 
     public PageFrameTable(int TableSize) {
         this._PageFrameTable = new ArrayList[TableSize];
         for(int i = 0; i<TableSize; i++){
         _PageFrameTable[i] = new ArrayList();
+        bufNum = TableSize;
         }
     }    
     // FindExistingFramePageBucket returns the PageFrameBucket for the PageID
@@ -97,7 +99,7 @@ public class PageFrameTable {
     }
     
     private int hashFunction(int PageID){
-        return (PageID*3 + 4) % 1023;
+        return (PageID) % bufNum;
     }
     
     public ArrayList getAllPages()

@@ -104,7 +104,7 @@ public class HeapFile implements GlobalConst
 		Minibase.BufferManager.pinPage(rid.pageno, tmp_hf, false);
 		int length = tmp_hf.getSlotLength(rid.slotno);
 		Tuple tuple = new Tuple(tmp_hf.selectRecord(rid), 0, length);
-		
+		Minibase.BufferManager.unpinPage(rid.pageno, true);
 		return tuple;
 	}
 	

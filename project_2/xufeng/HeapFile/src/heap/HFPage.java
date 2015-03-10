@@ -123,7 +123,8 @@ public class HFPage extends Page {
     
     public void updateRecord(RID rid, heap.Tuple record) {
         // Updates a record on the page.
-		// the validity of this update should have been checked by the HeapFile layer
+	// the validity of this update should have been checked by the HeapFile layer
+        System.out.println(">> GE_SIZE et + \n");
         short recordLength = getSlotLength(rid.slotno);
         short recordOffset = getSlotOffset(rid.slotno);
         System.out.println(">> updateRecord: rid.page = "+rid.pageno+"; rid.slotno = "+rid.slotno+"; page_size = " + PAGE_SIZE +"; recordLength = " + recordLength + "; recordOffset = " + recordOffset + "\n");

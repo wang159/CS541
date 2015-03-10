@@ -125,14 +125,14 @@ public class HeapFile {
             //System.out.println(">> locateInsertPageId: freeBytes = " + readPage(pid).getFreeSpace() + "; contFreeBytes = " + readPage(pid).getContFreeSpace() + "; totalSize = " + totalSize + "\n");
             if (totalSize <= readPage(pid).getFreeSpace()) {
                 // this page can host this record
-                if (totalSize <= readPage(pid).getContFreeSpace()) {
+                //if (totalSize <= readPage(pid).getContFreeSpace()) {
                     // and the continous free block is large enough
                     insertToPageId.pid = pid;
 					System.out.println(">> locateInsertPageId: pageno = " + thisRID.pageno + "; slotno = " + thisRID.slotno +"\n");
 					break; // breakaway since the page has been found
-                } else {
+                //} else {
                     // but the continous free block is not large enough
-                }
+                //}
             }
         }
 
@@ -161,7 +161,7 @@ public class HeapFile {
 
 				Minibase.BufferManager.pinPage(rid.pageno, thisDirPage, false); // pin page				
 				diskMgr.read_page(rid.pageno, thisDirPage);  // read directory page from disk
-				thisDirPage.updateRecord(rid, record);           // add pageId(int) to the record
+				thisDirPage.updateRecord(rid, record);       // add pageId(int) to the record
 				diskMgr.write_page(rid.pageno, thisDirPage); // write directory page to disk
 				Minibase.BufferManager.unpinPage(rid.pageno, true); // unpin page				
 			} else {

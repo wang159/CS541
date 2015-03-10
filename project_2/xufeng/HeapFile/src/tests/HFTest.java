@@ -7,7 +7,6 @@ import global.RID;
 import heap.HeapFile;
 import heap.HeapScan;
 import heap.Tuple;
-import heap.HFPage;
 
 import java.io.IOException;
 
@@ -120,6 +119,7 @@ class HFDriver extends TestDriver implements GlobalConst
 		if ( status == OK ) {
 			System.out.println ("  - Add " + choice + " records to the file\n");
 			for (int i =0; (i < choice) && (status == OK); i++) {
+
 				//fixed length record
 				DummyRecord rec = new DummyRecord(reclen);
 				rec.ival = i;
@@ -156,7 +156,7 @@ class HFDriver extends TestDriver implements GlobalConst
 				e.printStackTrace();
 			}
 		}
-                System.exit(0);
+
 		// In general, a sequential scan won't be in the same order as the
 		// insertions.  However, we're inserting fixed-length records here, and
 		// in this case the scan must return the insertion order.
@@ -336,12 +336,12 @@ class HFDriver extends TestDriver implements GlobalConst
 			}
 		}
 
-		//try {
+		try {
 			scan.close();
-		//} catch (ChainException e1) {
+		} catch (ChainException e1) {
 			// TODO Auto-generated catch block
-		//	e1.printStackTrace();
-		//}	//  destruct scan!!!!!!!!!!!!!!!
+			e1.printStackTrace();
+		}	//  destruct scan!!!!!!!!!!!!!!!
 		scan = null;
 
 		if ( status == OK && Minibase.BufferManager.getNumUnpinned() 
@@ -578,7 +578,6 @@ class HFDriver extends TestDriver implements GlobalConst
 						e.printStackTrace();
 					}
 
-
 					if( (rec.ival != i) || (rec.fval != (float)i*7)
 							|| (rec2.ival != i) || (rec2.fval != i*7) ) {
 						System.err.println ("*** Record " + i
@@ -692,7 +691,7 @@ class HFDriver extends TestDriver implements GlobalConst
 				}
 
 				if (status == OK) { 
-					status = FAIL; 
+					status = FAIL;
 					System.err.println ("######The expected exception was not thrown\n");
 				}
 				else { 
@@ -733,8 +732,8 @@ class HFDriver extends TestDriver implements GlobalConst
 				}
 
 				if (status == OK) { 
-					status = FAIL; 
-					System.err.println ("The expected exception was not thrown\n");
+					status = FAIL;
+					System.err.println ("The expected exception was not thrown!\n");
 				}
 				else { 
 					status = OK; 
@@ -748,7 +747,9 @@ class HFDriver extends TestDriver implements GlobalConst
 			System.out.println ("  - Try to insert a record that's too long\n");
 			byte [] record = new byte [MAX_TUPSIZE+4];
 			try {
+// System.out.println("@@@@@@@@@@@@ -- 9");
 				rid = f.insertRecord( record );
+// System.out.println("@@@@@@@@@@@@ -- 10");
 			}
 			catch (ChainException e) {
 				status = checkException (e, "heap.SpaceNotAvailableException");

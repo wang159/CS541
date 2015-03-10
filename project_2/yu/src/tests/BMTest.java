@@ -483,13 +483,18 @@ class BMDriver extends TestDriver implements GlobalConst {
 		"a time, and leave some pinned\n");
 
 		for ( index=0; status == OK && index < numPages; ++index ) {
+			//System.out.println("index: " + index);
 			try {
 				pid = Minibase.BufferManager.newPage( pg, 1 );
+			
+				//System.out.println("pid " + pid);
 			}
 			catch (Exception e) {   
 				status = FAIL;
+			//	System.out.println("pid: " + pid.pid);
+				
 				System.err.print ("*** Could not allocate new page number " 
-						+ index+1 + "\n");
+						+ (index+1) + "\n");
 				e.printStackTrace();
 			}
 

@@ -257,8 +257,8 @@ class ROTest extends TestDriver {
 
 			// test hash join operator
 			saveCounts(null);
-			// HashJoin join = new HashJoin(new FileScan(s_drivers, drivers),new FileScan(s_rides, rides), 0, 0);
-			SimpleJoin join = new SimpleJoin(new FileScan(s_drivers, drivers),new FileScan(s_rides, rides), 0, 0);
+			 HashJoin join = new HashJoin(new FileScan(s_drivers, drivers),new FileScan(s_rides, rides), 0, 0);
+			//SimpleJoin join = new SimpleJoin(new FileScan(s_drivers, drivers),new FileScan(s_rides, rides), 0, 0);
 			join.execute();
 
 			// destroy temp files before doing final counts

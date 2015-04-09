@@ -83,5 +83,11 @@ public class KeyScan extends Iterator {
 	    }
 	    
 	  }
+	  public HeapFile getFile(){
+		  return hf;
+	  }
+	  public HashIndex getHashIndx(){
+		  return hash_index;
+	  }
 
 } // public class KeyScan extends Iterator

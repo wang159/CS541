@@ -92,5 +92,9 @@ public class FileScan extends Iterator {
       RID tmp = new RID(rid);
 	  return tmp;
   }
+  
+  public HeapFile getFile(){
+	  return hf;
+  }
 
 } // public class FileScan extends Iterator

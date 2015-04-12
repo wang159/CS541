@@ -29,10 +29,12 @@ public class QEPTest extends TestDriver {
 
 	/** employee table schema. */
 	private static Schema s_employee;
-
+    private static HeapFile employee;
+    
 	/** department table schema. */
 	private static Schema s_department;
-
+    private static HeapFile department;
+    
 	// --------------------------------------------------------------------------
 
 	/**
@@ -60,7 +62,7 @@ public class QEPTest extends TestDriver {
         BufferedReader br = null;
         String line = "";
         Tuple tuple = new Tuple(s_employee);
-        HeapFile employee = new HeapFile(null);
+        employee = new HeapFile(null);
         
 		try {
 			br = new BufferedReader(new FileReader(thisFilePath));
@@ -98,7 +100,7 @@ public class QEPTest extends TestDriver {
         br = null;
         line = "";
         tuple = new Tuple(s_department);
-        HeapFile department = new HeapFile(null);
+        department = new HeapFile(null);
         
 		try {
 			br = new BufferedReader(new FileReader(thisFilePath));
@@ -169,16 +171,20 @@ public class QEPTest extends TestDriver {
 	} // protected boolean test1()
 
 	/**
-	 * 
+	 * Display the Name for the departments with MinSalary = 1000
 	 */
 	protected boolean test2() {
 		try {
+			Selection sel = new Selection(new FileScan(s_department, department), new Predicate(AttrOperator.EQ,
+			    AttrType.FIELDNO, 2, AttrType.FLOAT, 1000F));
+		    Projection pro = new Projection(sel, 1);	
+			pro.execute();
+			
 			// End of test 2
 			System.out.print("\n\nTest 2 completed without exception.");
 			return PASS;
 
 		} catch (Exception exc) {
-
 			exc.printStackTrace(System.out);
 			System.out.print("\n\nTest 2 terminated because of exception.");
 			return FAIL;
@@ -211,10 +217,16 @@ public class QEPTest extends TestDriver {
 	} // protected boolean test3()
 
 	/**
-	 * 
+	 * Display the name for employees whose Age > 30 and Salary < 1000
 	 */
 	protected boolean test4() {
 		try {
+			Selection sel = new Selection(new Selection(new FileScan(s_employee, employee), new Predicate(AttrOperator.GT,
+			    AttrType.FIELDNO, 2, AttrType.FLOAT, 30F)), new Predicate(AttrOperator.LT,
+			    AttrType.FIELDNO, 3, AttrType.FLOAT, 1000F));
+		    Projection pro = new Projection(sel, 1);	
+			pro.execute();
+					
 			// End of test 4
 			System.out.print("\n\nTest 4 completed without exception.");
 			return PASS;
@@ -253,10 +265,15 @@ public class QEPTest extends TestDriver {
 	} // protected boolean test5()
 
 	/**
-	 * 
+	 * Display the Name and Salary for employees who work in the department that has DeptId = 3
 	 */
 	protected boolean test6() {
 		try {
+		    Selection sel = new Selection(new FileScan(s_employee, employee), new Predicate(AttrOperator.EQ,
+			    AttrType.FIELDNO, 4, AttrType.INTEGER, 3));
+		    Projection pro = new Projection(sel, 1, 3);	
+			pro.execute();
+			
 			// End of test 6
 			System.out.print("\n\nTest 6 completed without exception.");
 			return PASS;
@@ -295,10 +312,17 @@ public class QEPTest extends TestDriver {
 	} // protected boolean test7()
 
 	/**
-	 * 
+	 * Display the Name for each employee whose Salary is less than the MinSalary of his department
 	 */
 	protected boolean test8() {
 		try {
+		    HashJoin join1 = new HashJoin(new FileScan(s_employee, employee),
+		        new FileScan(s_department, department), 4, 0);
+		    Selection sel = new Selection(join1, new Predicate(AttrOperator.LT,
+			    AttrType.FIELDNO, 3, AttrType.FIELDNO, 7));
+		    Projection pro = new Projection(sel, 1);	
+			pro.execute();
+			
 			// End of test 8
 			System.out.print("\n\nTest 8 completed without exception.");
 			return PASS;

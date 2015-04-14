@@ -1,0 +1,6 @@
+DeptId, Name, MinSalary, MaxSalary
+1, Computer Science, 1000, 10000
+2, Computer Science 2, 1000, 10330
+3, d3, 2000, 10000
+4, d4, 3000, 10000
+5, Mechanical Engineering, 10000, 10000

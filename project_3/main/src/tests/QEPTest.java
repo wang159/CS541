@@ -153,19 +153,26 @@ public class QEPTest extends TestDriver {
 	 * 
 	 */
 	protected boolean test1() {
-		try {
-			// End of test 1
+        try {
+        	System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+			System.out.println("\nTest 1: Display for each employee his Name and Salary");
+			initCounts();
+			saveCounts(null);
+			
+			FileScan scan = new FileScan(s_employee, employee);
+			Projection pro = new Projection(scan, 1, 3);
+			pro.execute();
+			saveCounts("test1");
+			
 			System.out.print("\n\nTest 1 completed without exception.");
 			return PASS;
-
-		} catch (Exception exc) {
-
+			
+		} catch (Exception exc){
 			exc.printStackTrace(System.out);
 			System.out.print("\n\nTest 1 terminated because of exception.");
 			return FAIL;
-
 		} finally {
-			//printSummary(6);
+			printSummary(6);
 			System.out.println();
 		}
 	} // protected boolean test1()
@@ -175,6 +182,8 @@ public class QEPTest extends TestDriver {
 	 */
 	protected boolean test2() {
 		try {
+		    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+			System.out.println("\nTest 2: Display the Name for the departments with MinSalary = 1000");
 			Selection sel = new Selection(new FileScan(s_department, department), new Predicate(AttrOperator.EQ,
 			    AttrType.FIELDNO, 2, AttrType.FLOAT, 1000F));
 		    Projection pro = new Projection(sel, 1);	
@@ -200,18 +209,27 @@ public class QEPTest extends TestDriver {
 	 */
 	protected boolean test3() {
 		try {
-			// End of test 3
+			System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+			System.out.println("\nTest 3: Display the Name for the departments with MinSalary = MaxSalary");
+			initCounts();
+			saveCounts(null);
+			
+			FileScan scan = new FileScan(s_department, department);
+			Predicate[] preds = new Predicate[] { new Predicate(AttrOperator.EQ, AttrType.FIELDNO, 2, AttrType.FIELDNO, 3) };
+			Selection sel = new Selection(scan, preds);
+			Projection pro = new Projection(sel, 1);
+			pro.execute();
+			saveCounts("test3");
+			
 			System.out.print("\n\nTest 3 completed without exception.");
 			return PASS;
-
-		} catch (Exception exc) {
-
+			
+		} catch (Exception exc){
 			exc.printStackTrace(System.out);
 			System.out.print("\n\nTest 3 terminated because of exception.");
 			return FAIL;
-
 		} finally {
-			//printSummary(6);
+			printSummary(6);
 			System.out.println();
 		}
 	} // protected boolean test3()
@@ -221,6 +239,8 @@ public class QEPTest extends TestDriver {
 	 */
 	protected boolean test4() {
 		try {
+			System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+			System.out.println("\nTest 4: Display the name for employees whose Age > 30 and Salary < 1000");
 			Selection sel = new Selection(new Selection(new FileScan(s_employee, employee), new Predicate(AttrOperator.GT,
 			    AttrType.FIELDNO, 2, AttrType.FLOAT, 30F)), new Predicate(AttrOperator.LT,
 			    AttrType.FIELDNO, 3, AttrType.FLOAT, 1000F));
@@ -248,18 +268,25 @@ public class QEPTest extends TestDriver {
 	 */
 	protected boolean test5() {
 		try {
-			// End of test 5
+			System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+			System.out.println("\nTest 5: For each employee, display his Salary and the Name of his department");
+			initCounts();
+			saveCounts(null);
+			
+			HashJoin join = new HashJoin(new FileScan(s_employee, employee), new FileScan(s_department, department), 4, 0);
+			Projection pro = new Projection(join, 1, 3, 6);
+			pro.execute();
+			saveCounts("test5");
+			
 			System.out.print("\n\nTest 5 completed without exception.");
 			return PASS;
-
-		} catch (Exception exc) {
-
+			
+		} catch (Exception exc){
 			exc.printStackTrace(System.out);
 			System.out.print("\n\nTest 5 terminated because of exception.");
 			return FAIL;
-
 		} finally {
-			//printSummary(6);
+			printSummary(6);
 			System.out.println();
 		}
 	} // protected boolean test5()
@@ -269,6 +296,8 @@ public class QEPTest extends TestDriver {
 	 */
 	protected boolean test6() {
 		try {
+			System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+			System.out.println("\nTest 6: Display the Name and Salary for employees who work in the department that has DeptId = 3");
 		    Selection sel = new Selection(new FileScan(s_employee, employee), new Predicate(AttrOperator.EQ,
 			    AttrType.FIELDNO, 4, AttrType.INTEGER, 3));
 		    Projection pro = new Projection(sel, 1, 3);	
@@ -295,18 +324,30 @@ public class QEPTest extends TestDriver {
 	 */
 	protected boolean test7() {
 		try {
-			// End of test 7
+			System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+			System.out.println("\nTest 7: Display the Salary for each employee who works in a department that has MaxSalary > 100000");
+			initCounts();
+			saveCounts(null);
+			
+			Predicate[] preds = new Predicate[] { new Predicate(AttrOperator.GT, AttrType.FIELDNO, 8, AttrType.FLOAT, 100000F) };
+			
+			HashJoin join = new HashJoin(new FileScan(s_employee, employee), new FileScan(s_department, department), 4, 0);
+//			join.execute();
+			Selection sel = new Selection(join, preds);
+//			sel.execute();
+			Projection pro = new Projection(sel, 1, 3);
+			pro.execute();
+			saveCounts("test7");
+			
 			System.out.print("\n\nTest 7 completed without exception.");
 			return PASS;
-
-		} catch (Exception exc) {
-
+			
+		} catch (Exception exc){
 			exc.printStackTrace(System.out);
 			System.out.print("\n\nTest 7 terminated because of exception.");
 			return FAIL;
-
 		} finally {
-			//printSummary(6);
+			printSummary(6);
 			System.out.println();
 		}
 	} // protected boolean test7()
@@ -316,6 +357,8 @@ public class QEPTest extends TestDriver {
 	 */
 	protected boolean test8() {
 		try {
+			System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+			System.out.println("\nTest 8: Display the Name for each employee whose Salary is less than the MinSalary of his department");
 		    HashJoin join1 = new HashJoin(new FileScan(s_employee, employee),
 		        new FileScan(s_department, department), 4, 0);
 		    Selection sel = new Selection(join1, new Predicate(AttrOperator.LT,

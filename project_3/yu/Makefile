@@ -11,7 +11,7 @@ PROGS = xx
 all: $(PROGS)
 
 compile:
-	$(JAVAC) -J-XX:-UseCompressedClassPointers -cp $(CLASSPATH) -d bin src/*/*.java
+	$(JAVAC) -cp $(CLASSPATH) -d bin src/*/*.java
 
 xx : compile
-	$(JAVA) -XX:-UseCompressedClassPointers -cp $(CLASSPATH):bin tests.ROTest
+	$(JAVA) -cp $(CLASSPATH):bin tests.ROTest

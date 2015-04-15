@@ -1,0 +1,12 @@
+INDEX VERSION 1.126+/.data-12/scratch2/wang1613/CS541/proj3/.metadata/.plugins/org.eclipse.jdt.core
+3601593535.index
+751791530.index
+791190410.index
+3120934870.index
+1591532386.index
+3145337585.index
+4215866729.index
+206880626.index
+799194063.index
+3887986906.index
+288297162.index

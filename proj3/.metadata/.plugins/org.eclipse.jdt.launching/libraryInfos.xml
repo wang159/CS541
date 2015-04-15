@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<libraryInfos>
+<libraryInfo home="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre" version="1.6.0_45">
+<bootpath>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/resources.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/rt.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/sunrsasign.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/jsse.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/jce.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/charsets.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/modules/jdk.boot.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/classes"/>
+</bootpath>
+<extensionDirs>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/ext"/>
+<entry path="/usr/jdk/packages/lib/ext"/>
+</extensionDirs>
+<endorsedDirs>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/endorsed"/>
+</endorsedDirs>
+</libraryInfo>
+<libraryInfo home="/.bors-2/p8/java-1.6.0_45/sun4-sos5" version="1.6.0_45">
+<bootpath>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/resources.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/rt.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/sunrsasign.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/jsse.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/jce.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/charsets.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/modules/jdk.boot.jar"/>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/classes"/>
+</bootpath>
+<extensionDirs>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/ext"/>
+<entry path="/usr/jdk/packages/lib/ext"/>
+</extensionDirs>
+<endorsedDirs>
+<entry path="/.bors-2/p8/java-1.6.0_45/sun4-sos5/jre/lib/endorsed"/>
+</endorsedDirs>
+</libraryInfo>
+</libraryInfos>

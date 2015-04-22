@@ -1,7 +1,6 @@
 package query;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map.Entry;
 import global.Minibase;
 import parser.AST_Select;
@@ -80,7 +79,7 @@ public void execute() {
 			//System.out.println(pi +"," + pj +" : " + preds[pi][pj].toString());
 		//}
 	//}
-    HashMap<String,Integer> tojoin = new HashMap<String,Integer>();
+    ArrayList<String> toj =new ArrayList<String>();
     java.util.Iterator<Entry<String, Integer>> itr;
 	@SuppressWarnings("unchecked")
 	ArrayList<Predicate[]>[] PushUnderJoin = new ArrayList[tabs.length];
@@ -91,8 +90,8 @@ public void execute() {
 			boolean tmptrue = true;
 			for(int pj = 0; pj < preds[pi].length; pj = pj+1){
 				tmptrue &= preds[pi][pj].validate(its[i].getSchema());
-				if(!tojoin.containsKey(preds[pi][pj].toString())){
-					tojoin.put(preds[pi][pj].toString(),0);
+				if(!toj.contains(preds[pi][pj].toString())){
+					toj.add(preds[pi][pj].toString());
 				}
 			}
 			if(tmptrue){
@@ -109,7 +108,7 @@ public void execute() {
 			for(int j = 0; j < PushUnderJoin[i].size(); j = j+1){
 				its[i] = new Selection(its[i],PushUnderJoin[i].get(j));
 				for(int k = 0; k < PushUnderJoin[i].get(j).length; k = k+1){
-					tojoin.remove(PushUnderJoin[i].get(j)[k].toString());
+					toj.remove(PushUnderJoin[i].get(j)[k].toString());
 				}
 			}
 		}
@@ -124,35 +123,43 @@ public void execute() {
 	// join
 	Iterator it_ex = its[0];
 	Schema it_sc = it_ex.getSchema();
-	//itr = tojoin.entrySet().iterator();	
-	//while(itr.hasNext()){
-		//System.out.println(itr.next().getKey());
+	
+	//for(int tj = 0; tj < toj.size(); tj = tj+1){
+		//System.out.println(toj.get(tj));
 	//}
-	itr = tojoin.entrySet().iterator();
+
     if(tabs.length>1){
     	for(int i = 1; i < tabs.length; i = i+1){
-    		while(itr.hasNext()){
-    			for(int pi = 0; pi < preds.length; pi = pi+1){
-    				boolean tmptrue = false;
-    				for(int pj = 0; pj < preds[pi].length; pj = pj+1){
-    					if(itr.next().getKey().equals(preds[pi][pj].toString())){
-    						if(recCount[i-1]<recCount[i]){
-    							it_ex = new SimpleJoin(it_ex,its[i],preds[pi][pj]);
-    							it_sc = Schema.join(it_sc, its[i].getSchema());
-    						}
-    						else{
-    							it_ex = new SimpleJoin(its[i],it_ex,preds[pi][pj]);
-    							it_sc = Schema.join(its[i].getSchema(),it_sc);
-    						}
-    						tmptrue = true;
-    						break;
-    					}
-    				}
-    				if(tmptrue == true){
-    					break;
-    				}
-    			}
+    		
+    		if(recCount[i-1]<recCount[i]){
+    			it_sc = Schema.join(it_sc, its[i].getSchema());
     		}
+    		else{
+    			it_sc = Schema.join(its[i].getSchema(),it_sc);
+    		}
+			for(int pi = 0; pi < preds.length; pi = pi+1){
+				for(int pj = 0; pj < preds[pi].length; pj = pj+1){
+					if(preds[pi][pj].validate(it_sc)){
+						for(int tj = 0; tj < toj.size(); tj = tj+1){
+							if(toj.get(tj).equals(preds[pi][pj].toString())){								
+									if(recCount[i-1]<recCount[i]){
+								        it_ex = new SimpleJoin(it_ex,its[i],preds[pi][pj]);
+								        toj.remove(tj);
+			    						break;
+									}
+									else{
+										it_ex = new SimpleJoin(its[i],it_ex,preds[pi][pj]);
+										toj.remove(tj);
+			    						break;
+									}
+									
+							}		
+						}
+					}
+				}
+
+			}
+    		
 			//for(int pi = 0; pi < predlist.size(); pi = pi+1){
 				//for(int pj = 0; pj < predlist.get(pi).size(); pj = pj+1){
 					//if(predlist.get(pi).get(pj).validate(it_sc)){

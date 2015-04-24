@@ -18,6 +18,7 @@ class Select implements Plan {
 	private Integer[] col_nums;
 	private Iterator[] its;
 	private Integer[] recCount;
+	private final double SELECTIVITY=0.1;
   /**
    * Optimizes the plan, given the parsed query.
    * 
@@ -96,6 +97,7 @@ public void execute() {
 			}
 			if(tmptrue){
 			   PushUnderJoin[i].add(preds[pi]);
+			   recCount[i] = (int)(recCount[i]*SELECTIVITY);
 			}
 		}
 

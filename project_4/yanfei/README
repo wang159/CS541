@@ -1,1 +1,8 @@
-Group member: Yu Wang, Xufeng Wang, Yanfei Shen
+Group member: Yu Wang(wang1613), Xufeng Wang(wang159), Yanfei Shen(shen59)
+Contributions:
+Yu Wang: 
+Implemented CreatIndex, DropIndex, Insert and Select. Select has been optimized by pushing selection under join and considering the join order.
+Xufeng Wang:
+
+Yanfei Shen:
+

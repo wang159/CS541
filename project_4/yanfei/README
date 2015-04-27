@@ -5,4 +5,4 @@ Implemented CreatIndex, DropIndex, Insert and Select. Select has been optimized 
 Xufeng Wang:
 
 Yanfei Shen:
-
+Implement Delete and Describe.

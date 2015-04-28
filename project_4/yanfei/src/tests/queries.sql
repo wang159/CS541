@@ -103,8 +103,8 @@ SELECT * FROM Students;
 
 SELECT * FROM Courses;
 
-DELETE Courses WHERE title = 'Less Cool';
-DELETE Courses WHERE cid = 542;
+ DELETE Courses WHERE title = 'Less Cool' or cid = 542;
+-- DELETE Courses WHERE cid > 400 and cid < 500;
 
 SELECT * FROM Courses;
 

@@ -48,15 +48,21 @@ class Delete implements Plan {
    * Executes the plan and prints applicable output.
    */
   public void execute() {
-
+	
+	Selection sel = new Selection(scan, preds[0]);
+	
+  	for(int pi = 1; pi < preds.length; pi = pi+1){
+		for(int pj = 0; pj < preds[pi].length; pj = pj+1){
+			sel = new Selection(sel, preds[pi][pj]);
+		}
+	}
   
-	Selection sel = new Selection(scan, preds[0][0]);
 	int cnt = 0;
 	while(sel.hasNext()){
 		hf.deleteRecord(scan.getLastRID());
 		cnt++;
 	}
-//	System.out.println(preds[0][0].toString());
+
     // print the output message
 	if(cnt == 0){
 //		System.out.println(preds[0][0].toString());
